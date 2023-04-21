@@ -3,10 +3,9 @@
 #include "Types.h"
 #include "TPS.h"
 #include "Interface/TPS_IGameActor.h"
-#include "GameFramework/Character.h"
-#include "Kismet/GameplayStatics.h"
 
-void UTypes::AddEffectBySurfaceType( AActor* TakeEffectActor, FName NameBoneHit, TSubclassOf<UTPS_StateEffect> AddEffectClass, EPhysicalSurface SurfaceType)
+
+void UTypes::AddEffectBySurfaceType( AActor* TakeEffectActor, TSubclassOf<UTPS_StateEffect> AddEffectClass, EPhysicalSurface SurfaceType)
 {
 	if (SurfaceType != EPhysicalSurface::SurfaceType_Default && TakeEffectActor && AddEffectClass)
 	{
@@ -59,7 +58,7 @@ void UTypes::AddEffectBySurfaceType( AActor* TakeEffectActor, FName NameBoneHit,
 						UTPS_StateEffect* NewEffect = NewObject<UTPS_StateEffect>(TakeEffectActor, AddEffectClass);
 						if (NewEffect)
 						{
-							NewEffect->InitObject(TakeEffectActor, NameBoneHit);
+							NewEffect->InitObject(TakeEffectActor);
 						}
 					}
 					
@@ -69,25 +68,4 @@ void UTypes::AddEffectBySurfaceType( AActor* TakeEffectActor, FName NameBoneHit,
 		}
 
 	}
-}
-
-void UTypes::ExecuteEffectAdded(UParticleSystem* ExecuteFX, AActor* target, FVector offset, FName Socket)
-{
-	if (target)
-	{
-		FName SocketToAttached = Socket;
-		FVector Loc = offset;
-		ACharacter* myCharacter = Cast<ACharacter>(target);
-		if (myCharacter && myCharacter->GetMesh())
-		{
-			UGameplayStatics::SpawnEmitterAttached(ExecuteFX, myCharacter->GetMesh(), SocketToAttached, Loc, FRotator::ZeroRotator, EAttachLocation::SnapToTarget, false);
-		}
-		else
-		{
-			if (target->GetRootComponent())
-			{
-				UGameplayStatics::SpawnEmitterAttached(ExecuteFX, target->GetRootComponent(), SocketToAttached, Loc, FRotator::ZeroRotator, EAttachLocation::SnapToTarget, false);
-			}			
-		}
-	}	
 }

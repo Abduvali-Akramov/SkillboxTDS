@@ -22,10 +22,9 @@ void AProjectileDefault_Grenade::BeginPlay()
 void AProjectileDefault_Grenade::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (HasAuthority())
-	{
-		TimerExplose(DeltaTime);
-	}	
+	TimerExplose(DeltaTime);
+
+
 }
 
 void AProjectileDefault_Grenade::TimerExplose(float DeltaTime)
@@ -34,7 +33,9 @@ void AProjectileDefault_Grenade::TimerExplose(float DeltaTime)
 	{
 		if (TimerToExplose > TimeToExplose)
 		{
-			Explose_Onserver();			
+			//Explose
+			Explose();
+			
 		}
 		else
 		{
@@ -45,10 +46,6 @@ void AProjectileDefault_Grenade::TimerExplose(float DeltaTime)
 
 void AProjectileDefault_Grenade::BulletCollisionSphereHit(class UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	if (!TimerEnabled)
-	{
-		Explose_Onserver();
-	}
 	Super::BulletCollisionSphereHit(HitComp, OtherActor, OtherComp, NormalImpulse, Hit);
 }
 
@@ -58,7 +55,7 @@ void AProjectileDefault_Grenade::ImpactProjectile()
 	TimerEnabled = true;
 }
 
-void AProjectileDefault_Grenade::Explose_Onserver_Implementation()
+void AProjectileDefault_Grenade::Explose()
 {
 	if (DebugExplodeShow)
 	{
@@ -69,11 +66,11 @@ void AProjectileDefault_Grenade::Explose_Onserver_Implementation()
 	TimerEnabled = false;
 	if (ProjectileSetting.ExplodeFX)
 	{
-		SpawnExplodeFX_Multicast(ProjectileSetting.ExplodeFX);
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ProjectileSetting.ExplodeFX, GetActorLocation(), GetActorRotation(), FVector(1.0f));
 	}
 	if (ProjectileSetting.ExplodeSound)
 	{
-		SpawnExplodeSound_Multicast(ProjectileSetting.ExplodeSound);		
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), ProjectileSetting.ExplodeSound, GetActorLocation());
 	}
 	
 
@@ -88,14 +85,4 @@ void AProjectileDefault_Grenade::Explose_Onserver_Implementation()
 		NULL, IgnoredActor,this,nullptr);
 
 	this->Destroy();
-}
-
-void AProjectileDefault_Grenade::SpawnExplodeFX_Multicast_Implementation(UParticleSystem* FxTemplate)
-{
-	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), FxTemplate, GetActorLocation(), GetActorRotation(), FVector(1.0f));
-}
-
-void AProjectileDefault_Grenade::SpawnExplodeSound_Multicast_Implementation(USoundBase* ExplodeSound)
-{
-	UGameplayStatics::PlaySoundAtLocation(GetWorld(), ExplodeSound, GetActorLocation());
 }

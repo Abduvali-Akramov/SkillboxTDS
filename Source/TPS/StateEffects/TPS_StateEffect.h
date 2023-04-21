@@ -8,17 +8,15 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "TPS_StateEffect.generated.h"
 
-/**
- All implementation effects in one file, Fire Effect, blooding and...
- */
+class ATPSCharacter;
+
 UCLASS(Blueprintable, BlueprintType)
 class TPS_API UTPS_StateEffect : public UObject
 {
 	GENERATED_BODY()
 public:
-
-	bool IsSupportedForNetworking()const override {return true;};
-	virtual bool InitObject(AActor* Actor, FName NameBoneHit);
+	
+	virtual bool InitObject(AActor* Actor);
 	virtual void DestroyObject();
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
@@ -27,17 +25,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
 	bool bIsStakable = false;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting ExecuteTimer")
-	UParticleSystem* ParticleEffect = nullptr;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting ExecuteTimer")
-	bool bIsAutoDestroyParticleEffect = false;
-
 	AActor* myActor = nullptr;
-	UPROPERTY(Replicated)
-	FName NameBone;
-
-	UFUNCTION(NetMulticast, Reliable)
-	void FXSpawnByStateEffect_Multicast(UParticleSystem* Effect, FName NameBoneHit);
 };
 
 UCLASS()
@@ -46,7 +34,7 @@ class TPS_API UTPS_StateEffect_ExecuteOnce : public UTPS_StateEffect
 	GENERATED_BODY()
 
 public:
-	bool InitObject(AActor* Actor, FName NameBoneHit) override;
+	bool InitObject(AActor* Actor) override;
 	void DestroyObject() override;	
 
 	virtual void ExecuteOnce();
@@ -61,8 +49,7 @@ class TPS_API UTPS_StateEffect_ExecuteTimer : public UTPS_StateEffect
 	GENERATED_BODY()
 
 public:
-	bool InitObject(AActor* Actor, FName NameBoneHit) override;	
-
+	bool InitObject(AActor* Actor) override;
 	void DestroyObject() override;
 
 	virtual void Execute();
@@ -76,4 +63,23 @@ public:
 
 	FTimerHandle TimerHandle_ExecuteTimer;
 	FTimerHandle TimerHandle_EffectTimer;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting ExecuteTimer")
+	UParticleSystem* ParticleEffect = nullptr;
+
+	UParticleSystemComponent* ParticleEmitter = nullptr;
+};
+
+UCLASS()
+class TPS_API UTPS_StateEffect_DisableInput: public UTPS_StateEffect
+{
+	GENERATED_BODY()
+
+public:
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+	UAnimMontage* LoopAnimation = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+	ACharacter* Character;
+	void DisableCharacterInput();
 };

@@ -5,7 +5,7 @@
 
 
 
-void UTPSCharacterHealthComponent::ChangeHealthValue_OnServer(float ChangeValue)
+void UTPSCharacterHealthComponent::ChangeHealthValue(float ChangeValue)
 {
 	float CurrentDamage = ChangeValue * CoefDamage;
 
@@ -21,7 +21,7 @@ void UTPSCharacterHealthComponent::ChangeHealthValue_OnServer(float ChangeValue)
 	}
 	else
 	{
-		Super::ChangeHealthValue_OnServer(ChangeValue);
+		Super::ChangeHealthValue(ChangeValue);
 	}
 }
 
@@ -33,8 +33,6 @@ float UTPSCharacterHealthComponent::GetCurrentShield()
 void UTPSCharacterHealthComponent::ChangeShieldValue(float ChangeValue)
 {
 	Shield += ChangeValue;
-	//OnShieldChange.Broadcast(Shield, ChangeValue);
-	ShieldChangeEvent_Multicast(Shield,ChangeValue);
 
 	if (Shield > 100.0f)
 	{
@@ -51,7 +49,9 @@ void UTPSCharacterHealthComponent::ChangeShieldValue(float ChangeValue)
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle_CollDownShieldTimer, this, &UTPSCharacterHealthComponent::CoolDownShieldEnd, CoolDownShieldRecoverTime, false);
 
 		GetWorld()->GetTimerManager().ClearTimer(TimerHandle_ShieldRecoveryRateTimer);
-	}		
+	}	
+
+	OnShieldChange.Broadcast(Shield, ChangeValue);
 }
 
 void UTPSCharacterHealthComponent::CoolDownShieldEnd()
@@ -79,16 +79,5 @@ void UTPSCharacterHealthComponent::RecoveryShield()
 		Shield = tmp;
 	}
 
-	//OnShieldChange.Broadcast(Shield, ShieldRecoverValue);
-	ShieldChangeEvent_Multicast(Shield, ShieldRecoverValue);
-}
-
-float UTPSCharacterHealthComponent::GetShieldValue()
-{
-	return Shield;
-}
-
-void UTPSCharacterHealthComponent::ShieldChangeEvent_Multicast_Implementation(float newShield, float Damage)
-{
-	OnShieldChange.Broadcast(newShield, Damage);
+	OnShieldChange.Broadcast(Shield, ShieldRecoverValue);
 }

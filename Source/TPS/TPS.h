@@ -5,4 +5,3 @@
 #include "CoreMinimal.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTPS, Log, All);
-DECLARE_LOG_CATEGORY_EXTERN(LogTPS_Net, Log, All);

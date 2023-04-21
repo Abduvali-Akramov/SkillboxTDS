@@ -15,10 +15,6 @@
 #include "Engine/World.h"
 #include "Game/TPSGameInstance.h"
 #include "Weapons/Projectiles/ProjectileDefault.h"
-#include "TPS.h"
-#include "Net/UnrealNetwork.h"
-#include "Particles/ParticleSystemComponent.h"
-#include "Engine/ActorChannel.h"
 
 
 ATPSCharacter::ATPSCharacter()
@@ -64,9 +60,6 @@ ATPSCharacter::ATPSCharacter()
 	// Activate ticking in order to update the cursor every frame.
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = true;
-
-	//NetWork 
-	bReplicates = true;
 }
 
 void ATPSCharacter::Tick(float DeltaSeconds)
@@ -76,7 +69,7 @@ void ATPSCharacter::Tick(float DeltaSeconds)
 	if (CurrentCursor)
 	{
 		APlayerController* myPC = Cast<APlayerController>(GetController());
-		if (myPC && myPC->IsLocalPlayerController())
+		if (myPC)
 		{
 			FHitResult TraceHitResult;
 			myPC->GetHitResultUnderCursor(ECC_Visibility, true, TraceHitResult);
@@ -94,14 +87,13 @@ void ATPSCharacter::Tick(float DeltaSeconds)
 void ATPSCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (GetWorld() && GetWorld()->GetNetMode() != NM_DedicatedServer)
+	
+	if (CursorMaterial)
 	{
-		if (CursorMaterial && GetLocalRole() == ROLE_AutonomousProxy || GetLocalRole() == ROLE_Authority)
-		{
-			CurrentCursor = UGameplayStatics::SpawnDecalAtLocation(GetWorld(), CursorMaterial, CursorSize, FVector(0));
-		}
+		CurrentCursor = UGameplayStatics::SpawnDecalAtLocation(GetWorld(), CursorMaterial, CursorSize, FVector(0));
 	}	
+
+
 }
 
 void ATPSCharacter::SetupPlayerInputComponent(UInputComponent* NewInputComponent)
@@ -111,46 +103,15 @@ void ATPSCharacter::SetupPlayerInputComponent(UInputComponent* NewInputComponent
 	NewInputComponent->BindAxis(TEXT("MoveForward"), this, &ATPSCharacter::InputAxisX);
 	NewInputComponent->BindAxis(TEXT("MoveRight"), this, &ATPSCharacter::InputAxisY);
 
-	NewInputComponent->BindAction(TEXT("ChangeToSprint"), EInputEvent::IE_Pressed, this, &ATPSCharacter::InputSprintPressed);
-	NewInputComponent->BindAction(TEXT("ChangeToWalk"), EInputEvent::IE_Pressed, this, &ATPSCharacter::InputWalkPressed);
-	NewInputComponent->BindAction(TEXT("AimEvent"), EInputEvent::IE_Pressed, this, &ATPSCharacter::InputAimPressed);
-	NewInputComponent->BindAction(TEXT("ChangeToSprint"), EInputEvent::IE_Released, this, &ATPSCharacter::InputSprintReleased);
-	NewInputComponent->BindAction(TEXT("ChangeToWalk"), EInputEvent::IE_Released, this, &ATPSCharacter::InputWalkReleased);
-	NewInputComponent->BindAction(TEXT("AimEvent"), EInputEvent::IE_Released, this, &ATPSCharacter::InputAimReleased);
-
 	NewInputComponent->BindAction(TEXT("FireEvent"), EInputEvent::IE_Pressed, this, &ATPSCharacter::InputAttackPressed);
 	NewInputComponent->BindAction(TEXT("FireEvent"), EInputEvent::IE_Released, this, &ATPSCharacter::InputAttackReleased);
 	NewInputComponent->BindAction(TEXT("ReloadEvent"), EInputEvent::IE_Released, this, &ATPSCharacter::TryReloadWeapon);
 
-	NewInputComponent->BindAction(TEXT("SwitchNextWeapon"), EInputEvent::IE_Pressed, this, &ATPSCharacter::TrySwitchNextWeapon);
+	NewInputComponent->BindAction(TEXT("SwitchNextWeapon"), EInputEvent::IE_Pressed, this, &ATPSCharacter::TrySwicthNextWeapon);
 	NewInputComponent->BindAction(TEXT("SwitchPreviosWeapon"), EInputEvent::IE_Pressed, this, &ATPSCharacter::TrySwitchPreviosWeapon);
 
 	NewInputComponent->BindAction(TEXT("AblityAction"), EInputEvent::IE_Pressed, this, &ATPSCharacter::TryAbilityEnabled);
 	
-	NewInputComponent->BindAction(TEXT("DropCurrentWeapon"), EInputEvent::IE_Pressed, this, &ATPSCharacter::DropCurrentWeapon);
-
-	TArray<FKey> HotKeys;
-	HotKeys.Add(EKeys::One);
-	HotKeys.Add(EKeys::Two);
-	HotKeys.Add(EKeys::Three);
-	HotKeys.Add(EKeys::Four);
-	HotKeys.Add(EKeys::Five);
-	HotKeys.Add(EKeys::Six);
-	HotKeys.Add(EKeys::Seven);
-	HotKeys.Add(EKeys::Eight);
-	HotKeys.Add(EKeys::Nine);
-	HotKeys.Add(EKeys::Zero);
-
-	NewInputComponent->BindKey(HotKeys[1], IE_Pressed, this, &ATPSCharacter::TKeyPressed<1>);
-	NewInputComponent->BindKey(HotKeys[2], IE_Pressed, this, &ATPSCharacter::TKeyPressed<2>);
-	NewInputComponent->BindKey(HotKeys[3], IE_Pressed, this, &ATPSCharacter::TKeyPressed<3>);
-	NewInputComponent->BindKey(HotKeys[4], IE_Pressed, this, &ATPSCharacter::TKeyPressed<4>);
-	NewInputComponent->BindKey(HotKeys[5], IE_Pressed, this, &ATPSCharacter::TKeyPressed<5>);
-	NewInputComponent->BindKey(HotKeys[6], IE_Pressed, this, &ATPSCharacter::TKeyPressed<6>);
-	NewInputComponent->BindKey(HotKeys[7], IE_Pressed, this, &ATPSCharacter::TKeyPressed<7>);
-	NewInputComponent->BindKey(HotKeys[8], IE_Pressed, this, &ATPSCharacter::TKeyPressed<8>);
-	NewInputComponent->BindKey(HotKeys[9], IE_Pressed, this, &ATPSCharacter::TKeyPressed<9>);
-	NewInputComponent->BindKey(HotKeys[0], IE_Pressed, this, &ATPSCharacter::TKeyPressed<0>);
 }
 
 void ATPSCharacter::InputAxisY(float Value)
@@ -165,10 +126,7 @@ void ATPSCharacter::InputAxisX(float Value)
 
 void ATPSCharacter::InputAttackPressed()
 {
-	if (CharHealthComponent && CharHealthComponent->GetIsAlive())
-	{
-		AttackCharEvent(true);
-	}	
+	AttackCharEvent(true);
 }
 
 void ATPSCharacter::InputAttackReleased()
@@ -176,136 +134,64 @@ void ATPSCharacter::InputAttackReleased()
 	AttackCharEvent(false);
 }
 
-void ATPSCharacter::InputWalkPressed()
-{
-	WalkEnabled = true;
-	ChangeMovementState();
-}
-
-void ATPSCharacter::InputWalkReleased()
-{
-	WalkEnabled = false;
-	ChangeMovementState();
-}
-
-void ATPSCharacter::InputSprintPressed()
-{
-	SprintRunEnabled = true;
-	ChangeMovementState();
-}
-
-void ATPSCharacter::InputSprintReleased()
-{
-	SprintRunEnabled = false;
-	ChangeMovementState();
-}
-
-void ATPSCharacter::InputAimPressed()
-{
-	AimEnabled = true;
-	ChangeMovementState();
-}
-
-void ATPSCharacter::InputAimReleased()
-{
-	AimEnabled = false;
-	ChangeMovementState();
-}
-
 void ATPSCharacter::MovementTick(float DeltaTime)
 {
-	if (CharHealthComponent && CharHealthComponent->GetIsAlive())
+	if (bIsAlive)
 	{
-		if (GetController() && GetController()->IsLocalPlayerController())
+		AddMovementInput(FVector(1.0f, 0.0f, 0.0f), AxisX);
+		AddMovementInput(FVector(0.0f, 1.0f, 0.0f), AxisY);
+
+		if (MovementState == EMovementState::SprintRun_State)
 		{
-			AddMovementInput(FVector(1.0f, 0.0f, 0.0f), AxisX);
-			AddMovementInput(FVector(0.0f, 1.0f, 0.0f), AxisY);
-
-			if (MovementState == EMovementState::SprintRun_State)
+			FVector myRotationVector = FVector(AxisX, AxisY, 0.0f);
+			FRotator myRotator = myRotationVector.ToOrientationRotator();
+			SetActorRotation((FQuat(myRotator)));
+		}
+		else
+		{
+			APlayerController* myController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+			if (myController)
 			{
-				FVector myRotationVector = FVector(AxisX, AxisY, 0.0f);
-				FRotator myRotator = myRotationVector.ToOrientationRotator();
+				FHitResult ResultHit;
+				//myController->GetHitResultUnderCursorByChannel(ETraceTypeQuery::TraceTypeQuery6, false, ResultHit);// bug was here Config\DefaultEngine.Ini
+				myController->GetHitResultUnderCursor(ECC_GameTraceChannel1, true, ResultHit);
 
-				SetActorRotation((FQuat(myRotator)));
-				SetActorRotationByYaw_OnServer(myRotator.Yaw);
-			}
-			else
-			{
-				APlayerController* myController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-				if (myController)
+				float FindRotaterResultYaw = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), ResultHit.Location).Yaw;
+				SetActorRotation(FQuat(FRotator(0.0f, FindRotaterResultYaw, 0.0f)));
+
+				if (CurrentWeapon)
 				{
-					FHitResult ResultHit;
-					//myController->GetHitResultUnderCursorByChannel(ETraceTypeQuery::TraceTypeQuery6, false, ResultHit);// bug was here Config\DefaultEngine.Ini
-					myController->GetHitResultUnderCursor(ECC_GameTraceChannel1, true, ResultHit);
-
-					float FindRotaterResultYaw = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), ResultHit.Location).Yaw;
-
-					SetActorRotation(FQuat(FRotator(0.0f, FindRotaterResultYaw, 0.0f)));
-					SetActorRotationByYaw_OnServer(FindRotaterResultYaw);
-
-					if (CurrentWeapon)
+					FVector Displacement = FVector(0);
+					switch (MovementState)
 					{
-						FVector Displacement = FVector(0);
-						bool bIsReduceDispersion = false;
-						switch (MovementState)
-						{
-						case EMovementState::Aim_State:
-							Displacement = FVector(0.0f, 0.0f, 160.0f);
-							//CurrentWeapon->ShouldReduceDispersion = true;
-							bIsReduceDispersion = true;
-							break;
-						case EMovementState::AimWalk_State:							
-							Displacement = FVector(0.0f, 0.0f, 160.0f);
-							//CurrentWeapon->ShouldReduceDispersion = true;
-							bIsReduceDispersion = true;
-							break;
-						case EMovementState::Walk_State:
-							Displacement = FVector(0.0f, 0.0f, 120.0f);
-							//CurrentWeapon->ShouldReduceDispersion = false;
-							break;
-						case EMovementState::Run_State:
-							Displacement = FVector(0.0f, 0.0f, 120.0f);
-							//CurrentWeapon->ShouldReduceDispersion = false;
-							break;
-						case EMovementState::SprintRun_State:
-							break;
-						default:
-							break;
-						}
-
-						//CurrentWeapon->ShootEndLocation = ResultHit.Location + Displacement;
-						CurrentWeapon->UpdateWeaponByCharacterMovementState_OnServer(ResultHit.Location + Displacement, bIsReduceDispersion);
-						//aim cursor like 3d Widget?
+					case EMovementState::Aim_State:
+						Displacement = FVector(0.0f, 0.0f, 160.0f);
+						CurrentWeapon->ShouldReduceDispersion = true;
+						break;
+					case EMovementState::AimWalk_State:
+						CurrentWeapon->ShouldReduceDispersion = true;
+						Displacement = FVector(0.0f, 0.0f, 160.0f);
+						break;
+					case EMovementState::Walk_State:
+						Displacement = FVector(0.0f, 0.0f, 120.0f);
+						CurrentWeapon->ShouldReduceDispersion = false;
+						break;
+					case EMovementState::Run_State:
+						Displacement = FVector(0.0f, 0.0f, 120.0f);
+						CurrentWeapon->ShouldReduceDispersion = false;
+						break;
+					case EMovementState::SprintRun_State:
+						break;
+					default:
+						break;
 					}
+
+					CurrentWeapon->ShootEndLocation = ResultHit.Location + Displacement;
+					//aim cursor like 3d Widget?
 				}
 			}
-		}		
+		}
 	}	
-}
-
-EMovementState ATPSCharacter::GetMovementState()
-{
-	return MovementState;
-}
-
-TArray<UTPS_StateEffect*> ATPSCharacter::GetCurrentEffectsOnChar()
-{
-	return Effects;
-}
-
-int32 ATPSCharacter::GetCurrentWeaponIndex()
-{
-	return CurrentIndexWeapon;
-}
-
-bool ATPSCharacter::GetIsAlive()
-{
-	bool result = false;
-	if (CharHealthComponent)
-	{
-		result = CharHealthComponent->GetIsAlive();
-	}
-	return result;
 }
 
 void ATPSCharacter::AttackCharEvent(bool bIsFiring)
@@ -314,7 +200,8 @@ void ATPSCharacter::AttackCharEvent(bool bIsFiring)
 	myWeapon = GetCurrentWeapon();
 	if (myWeapon)
 	{
-		myWeapon->SetWeaponStateFire_OnServer(bIsFiring);
+		//ToDo Check melee or range
+		myWeapon->SetWeaponStateFire(bIsFiring);
 	}
 	else
 		UE_LOG(LogTemp, Warning, TEXT("ATPSCharacter::AttackCharEvent - CurrentWeapon -NULL"));
@@ -349,10 +236,9 @@ void ATPSCharacter::CharacterUpdate()
 
 void ATPSCharacter::ChangeMovementState()
 {
-	EMovementState NewState = EMovementState::Run_State;
 	if (!WalkEnabled && !SprintRunEnabled && !AimEnabled)
 	{
-		NewState = EMovementState::Run_State;
+		MovementState = EMovementState::Run_State;
 	}
 	else
 	{
@@ -360,44 +246,35 @@ void ATPSCharacter::ChangeMovementState()
 		{
 			WalkEnabled = false;
 			AimEnabled = false;
-			NewState = EMovementState::SprintRun_State;
+			MovementState = EMovementState::SprintRun_State;
+		}
+		if (WalkEnabled && !SprintRunEnabled && AimEnabled)
+		{
+			MovementState = EMovementState::AimWalk_State;
 		}
 		else
 		{
-			if (WalkEnabled && !SprintRunEnabled && AimEnabled)
+			if (WalkEnabled && !SprintRunEnabled && !AimEnabled)
 			{
-				NewState = EMovementState::AimWalk_State;
+				MovementState = EMovementState::Walk_State;
 			}
 			else
 			{
-				if (WalkEnabled && !SprintRunEnabled && !AimEnabled)
+				if (!WalkEnabled && !SprintRunEnabled && AimEnabled)
 				{
-					NewState = EMovementState::Walk_State;
-				}
-				else
-				{
-					if (!WalkEnabled && !SprintRunEnabled && AimEnabled)
-					{
-						NewState = EMovementState::Aim_State;
-					}
+					MovementState = EMovementState::Aim_State;
 				}
 			}
-		}		
+		}
 	}	
-
-	SetMovementState_OnServer(NewState);
-	
-	//CharacterUpdate();
+	CharacterUpdate();
 
 	//Weapon state update
 	AWeaponDefault* myWeapon = GetCurrentWeapon();
 	if (myWeapon)
 	{
-		myWeapon->UpdateStateWeapon_OnServer(NewState);
+		myWeapon->UpdateStateWeapon(MovementState);
 	}
-
-	//FString SEnum = UEnum::GetValueAsString(NewState);
-	//UE_LOG(LogTPS_Net, Warning, TEXT("Movement state on SERVER - %s"), *SEnum);
 }
 
 AWeaponDefault* ATPSCharacter::GetCurrentWeapon()
@@ -407,7 +284,6 @@ AWeaponDefault* ATPSCharacter::GetCurrentWeapon()
 
 void ATPSCharacter::InitWeapon(FName IdWeaponName, FAdditionalWeaponInfo WeaponAdditionalInfo, int32 NewCurrentIndexWeapon)
 {
-	//Go on server
 	if (CurrentWeapon)
 	{
 		CurrentWeapon->Destroy();
@@ -435,19 +311,20 @@ void ATPSCharacter::InitWeapon(FName IdWeaponName, FAdditionalWeaponInfo WeaponA
 				{
 					FAttachmentTransformRules Rule(EAttachmentRule::SnapToTarget, false);
 					myWeapon->AttachToComponent(GetMesh(), Rule, FName("WeaponSocketRightHand"));
-					CurrentWeapon = myWeapon;	
-					
-					myWeapon->IdWeaponName = IdWeaponName;
+					CurrentWeapon = myWeapon;					
+
 					myWeapon->WeaponSetting = myWeaponInfo;
 
+					//myWeapon->AdditionalWeaponInfo.Round = myWeaponInfo.MaxRound;
 					
 					myWeapon->ReloadTime = myWeaponInfo.ReloadTime;
-					myWeapon->UpdateStateWeapon_OnServer(MovementState);
+					myWeapon->UpdateStateWeapon(MovementState);
 
 					myWeapon->AdditionalWeaponInfo = WeaponAdditionalInfo;
+					//if(InventoryComponent)
+						CurrentIndexWeapon = NewCurrentIndexWeapon;//fix
 
-					CurrentIndexWeapon = NewCurrentIndexWeapon;
-
+					//Not Forget remove delegate on change/drop weapon
 					myWeapon->OnWeaponReloadStart.AddDynamic(this, &ATPSCharacter::WeaponReloadStart);
 					myWeapon->OnWeaponReloadEnd.AddDynamic(this, &ATPSCharacter::WeaponReloadEnd);
 
@@ -469,13 +346,17 @@ void ATPSCharacter::InitWeapon(FName IdWeaponName, FAdditionalWeaponInfo WeaponA
 	}
 }
 
+void ATPSCharacter::RemoveCurrentWeapon()
+{
 
+}
 
 void ATPSCharacter::TryReloadWeapon()
 {
-	if (CharHealthComponent && CharHealthComponent->GetIsAlive() && CurrentWeapon && !CurrentWeapon->WeaponReloading)
-	{	
-		TryReloadWeapon_OnServer();			
+	if (CurrentWeapon && !CurrentWeapon->WeaponReloading)//fix reload
+	{
+		if (CurrentWeapon->GetWeaponRound() < CurrentWeapon->WeaponSetting.MaxRound && CurrentWeapon->CheckCanWeaponReload())
+			CurrentWeapon->InitReload();
 	}
 }
 
@@ -492,36 +373,6 @@ void ATPSCharacter::WeaponReloadEnd(bool bIsSuccess, int32 AmmoTake)
 		InventoryComponent->SetAdditionalInfoWeapon(CurrentIndexWeapon, CurrentWeapon->AdditionalWeaponInfo);
 	}
 	WeaponReloadEnd_BP(bIsSuccess);
-}
-
-void ATPSCharacter::TrySwitchWeaponToIndexByKeyInput_OnServer_Implementation(int32 ToIndex)
-{
-	bool bIsSuccess = false;
-	if (CurrentWeapon && !CurrentWeapon->WeaponReloading && InventoryComponent->WeaponSlots.IsValidIndex(ToIndex))
-	{
-		if (CurrentIndexWeapon != ToIndex && InventoryComponent)
-		{
-			int32 OldIndex = CurrentIndexWeapon;
-			FAdditionalWeaponInfo OldInfo;
-
-			if (CurrentWeapon)
-			{
-				OldInfo = CurrentWeapon->AdditionalWeaponInfo;
-				if (CurrentWeapon->WeaponReloading)
-					CurrentWeapon->CancelReload();
-			}
-
-			bIsSuccess = InventoryComponent->SwitchWeaponByIndex(ToIndex, OldIndex, OldInfo);
-		}
-	}		
-}
-
-void ATPSCharacter::DropCurrentWeapon()
-{	
-	if (InventoryComponent)
-	{		
-		InventoryComponent->DropWeapobByIndex_OnServer(CurrentIndexWeapon);
-	}	
 }
 
 void ATPSCharacter::WeaponReloadStart_BP_Implementation(UAnimMontage* Anim)
@@ -550,10 +401,12 @@ UDecalComponent* ATPSCharacter::GetCursorToWorld()
 {
 	return CurrentCursor;
 }
-
-void ATPSCharacter::TrySwitchNextWeapon()
+//ToDO in one func TrySwitchPreviosWeapon && TrySwicthNextWeapon
+//need Timer to Switch with Anim, this method stupid i must know switch success for second logic inventory
+//now we not have not success switch/ if 1 weapon switch to self
+void ATPSCharacter::TrySwicthNextWeapon()
 {
-	if (CurrentWeapon && !CurrentWeapon->WeaponReloading && InventoryComponent->WeaponSlots.Num() > 1)
+	if (InventoryComponent->WeaponSlots.Num() > 1)
 	{
 		//We have more then one weapon go switch
 		int8 OldIndex = CurrentIndexWeapon;
@@ -567,7 +420,7 @@ void ATPSCharacter::TrySwitchNextWeapon()
 			
 		if (InventoryComponent)
 		{			
-			if (InventoryComponent->SwitchWeaponToIndexByNextPreviosIndex(CurrentIndexWeapon + 1, OldIndex, OldInfo,true))
+			if (InventoryComponent->SwitchWeaponToIndex(CurrentIndexWeapon + 1, OldIndex, OldInfo,true))
 				{ }
 		}
 	}	
@@ -575,7 +428,7 @@ void ATPSCharacter::TrySwitchNextWeapon()
 
 void ATPSCharacter::TrySwitchPreviosWeapon()
 {
-	if (CurrentWeapon && !CurrentWeapon->WeaponReloading && InventoryComponent->WeaponSlots.Num() > 1)
+	if (InventoryComponent->WeaponSlots.Num() > 1)
 	{
 		//We have more then one weapon go switch
 		int8 OldIndex = CurrentIndexWeapon;
@@ -590,9 +443,8 @@ void ATPSCharacter::TrySwitchPreviosWeapon()
 		if (InventoryComponent)
 		{
 			//InventoryComponent->SetAdditionalInfoWeapon(OldIndex, GetCurrentWeapon()->AdditionalWeaponInfo);
-			if (InventoryComponent->SwitchWeaponToIndexByNextPreviosIndex(CurrentIndexWeapon - 1, OldIndex, OldInfo, false))
-			{
-			}
+			if (InventoryComponent->SwitchWeaponToIndex(CurrentIndexWeapon - 1,OldIndex, OldInfo, false))
+				{ }
 		}
 	}
 }
@@ -605,7 +457,7 @@ void ATPSCharacter::TryAbilityEnabled()
 		UTPS_StateEffect* NewEffect = NewObject<UTPS_StateEffect>(this, AbilityEffect);
 		if (NewEffect)
 		{
-			NewEffect->InitObject(this, NAME_None);
+			NewEffect->InitObject(this);
 		}
 	}
 }
@@ -625,8 +477,8 @@ EPhysicalSurface ATPSCharacter::GetSurfuceType()
 					Result = myMaterial->GetPhysicalMaterial()->SurfaceType;
 				}
 			}
-		}
-	}
+		}		
+	}			
 	return Result;
 }
 
@@ -635,199 +487,40 @@ TArray<UTPS_StateEffect*> ATPSCharacter::GetAllCurrentEffects()
 	return Effects;
 }
 
-void ATPSCharacter::RemoveEffect_Implementation(UTPS_StateEffect* RemoveEffect)
+void ATPSCharacter::RemoveEffect(UTPS_StateEffect* RemoveEffect)
 {
 	Effects.Remove(RemoveEffect);
-
-	if (!RemoveEffect->bIsAutoDestroyParticleEffect)
-	{
-		SwitchEffect(RemoveEffect, false);
-		EffectRemove = RemoveEffect;
-	}
 }
 
-void ATPSCharacter::AddEffect_Implementation(UTPS_StateEffect* newEffect)
+void ATPSCharacter::AddEffect(UTPS_StateEffect* newEffect)
 {
 	Effects.Add(newEffect);
-
-	if (!newEffect->bIsAutoDestroyParticleEffect)
-	{
-		SwitchEffect(newEffect, true);
-		EffectAdd = newEffect;
-	}
-	else
-	{
-		if (newEffect->ParticleEffect)
-		{
-			ExecuteEffectAdded_OnServer(newEffect->ParticleEffect);
-		}
-	}
-}
-
-void ATPSCharacter::CharDead_BP_Implementation()
-{
-	//BP
-}
-
-void ATPSCharacter::SetActorRotationByYaw_OnServer_Implementation(float Yaw)
-{
-	SetActorRotationByYaw_Multicast(Yaw);
-}
-
-void ATPSCharacter::SetActorRotationByYaw_Multicast_Implementation(float Yaw)
-{
-	if (Controller && !Controller->IsLocalPlayerController())
-	{
-		SetActorRotation(FQuat(FRotator(0.0f,Yaw,0.0f)));
-	}
-}
-
-void ATPSCharacter::SetMovementState_OnServer_Implementation(EMovementState NewState)
-{
-	SetMovementState_Multicast(NewState);
-}
-
-void ATPSCharacter::SetMovementState_Multicast_Implementation(EMovementState NewState)
-{
-	MovementState = NewState;
-	CharacterUpdate();
-}
-
-void ATPSCharacter::TryReloadWeapon_OnServer_Implementation()
-{
-	if (CurrentWeapon->GetWeaponRound() < CurrentWeapon->WeaponSetting.MaxRound && CurrentWeapon->CheckCanWeaponReload())
-		CurrentWeapon->InitReload();
-}
-
-void ATPSCharacter::PlayAnim_Multicast_Implementation(UAnimMontage* Anim)
-{
-	if (GetMesh() && GetMesh()->GetAnimInstance())
-	{
-		GetMesh()->GetAnimInstance()->Montage_Play(Anim);
-	}
-}
-
-void ATPSCharacter::EffectAdd_OnRep()
-{
-	if (EffectAdd)
-	{
-		SwitchEffect(EffectAdd, true);
-	}	
-}
-
-void ATPSCharacter::EffectRemove_OnRep()
-{
-	if (EffectRemove)
-	{
-		SwitchEffect(EffectRemove, false);
-	}
-}
-
-void ATPSCharacter::ExecuteEffectAdded_OnServer_Implementation(UParticleSystem* ExecuteFX)
-{
-	ExecuteEffectAdded_Multicast(ExecuteFX);
-}
-
-void ATPSCharacter::ExecuteEffectAdded_Multicast_Implementation(UParticleSystem* ExecuteFX)
-{
-	UTypes::ExecuteEffectAdded(ExecuteFX, this, FVector(0), FName("Spine_01"));
-}
-
-void ATPSCharacter::SwitchEffect(UTPS_StateEffect* Effect, bool bIsAdd)
-{
-	if (bIsAdd)
-	{
-		if (Effect && Effect->ParticleEffect)
-		{
-			FName NameBoneToAttached = Effect->NameBone;
-			FVector Loc = FVector(0);
-
-			USkeletalMeshComponent* myMesh = GetMesh();
-			if (myMesh)
-			{
-				UParticleSystemComponent* newParticleSystem = UGameplayStatics::SpawnEmitterAttached(Effect->ParticleEffect, myMesh, NameBoneToAttached, Loc, FRotator::ZeroRotator, EAttachLocation::SnapToTarget, false);
-				ParticleSystemEffects.Add(newParticleSystem);											
-			}
-		}
-	}
-	else
-	{		
-		if (Effect && Effect->ParticleEffect)
-		{
-			int32 i = 0;
-			bool bIsFind = false;
-			if (ParticleSystemEffects.Num() > 0)
-			{
-				while (i < ParticleSystemEffects.Num() && !bIsFind)
-				{
-					if (ParticleSystemEffects[i] && ParticleSystemEffects[i]->Template && Effect->ParticleEffect && Effect->ParticleEffect == ParticleSystemEffects[i]->Template)
-					{
-						bIsFind = true;
-						ParticleSystemEffects[i]->DeactivateSystem();
-						ParticleSystemEffects[i]->DestroyComponent();
-						ParticleSystemEffects.RemoveAt(i);
-					}
-					i++;
-				}
-			}			
-		}
-	}
 }
 
 void ATPSCharacter::CharDead()
 {
-	CharDead_BP();
-	if (HasAuthority())
+	float TimeAnim = 0.0f;
+	int32 rnd = FMath::RandHelper(DeadsAnim.Num());
+	if (DeadsAnim.IsValidIndex(rnd) && DeadsAnim[rnd] && GetMesh() && GetMesh()->GetAnimInstance())
 	{
-		float TimeAnim = 0.0f;
-		int32 rnd = FMath::RandHelper(DeadsAnim.Num());
-		if (DeadsAnim.IsValidIndex(rnd) && DeadsAnim[rnd] && GetMesh() && GetMesh()->GetAnimInstance())
-		{
-			TimeAnim = DeadsAnim[rnd]->GetPlayLength();
-			//GetMesh()->GetAnimInstance()->Montage_Play(DeadsAnim[rnd]);
-			PlayAnim_Multicast(DeadsAnim[rnd]);
-		}
-
-		if (GetController())
-		{
-			GetController()->UnPossess();
-		}
-
-		float DecraeseAnimTimer = FMath::FRandRange(0.2f, 1.0f);
-
-		GetWorldTimerManager().SetTimer(TimerHandle_RagDollTimer, this, &ATPSCharacter::EnableRagdoll_Multicast, TimeAnim - DecraeseAnimTimer, false);
-
-		SetLifeSpan(20.0f);
-		if (GetCurrentWeapon())
-		{
-			GetCurrentWeapon()->SetLifeSpan(20.0f);
-		}
-	}
-	else
-	{
-		if (GetCursorToWorld())
-		{
-			GetCursorToWorld()->SetVisibility(false);
-		}
-
-		AttackCharEvent(false);
+		TimeAnim = DeadsAnim[rnd]->GetPlayLength();
+		GetMesh()->GetAnimInstance()->Montage_Play(DeadsAnim[rnd]);
 	}
 
-	if (GetCapsuleComponent())
-	{
-		GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
-	}
+	bIsAlive = false;
+
+	UnPossessed();
+
+	//Timer rag doll
+	GetWorldTimerManager().SetTimer(TimerHandle_RagDollTimer,this, &ATPSCharacter::EnableRagdoll, TimeAnim, false);	
+
+	GetCursorToWorld()->SetVisibility(false);
 }
 
-void ATPSCharacter::EnableRagdoll_Multicast_Implementation()
+void ATPSCharacter::EnableRagdoll()
 {
 	if (GetMesh())
 	{
-		GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECollisionResponse::ECR_Ignore);
-		GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_PhysicsBody, ECollisionResponse::ECR_Ignore);
-
-		GetMesh()->SetCollisionObjectType(ECC_PhysicsBody);
-		GetMesh()->SetCollisionResponseToChannel(ECC_Pawn, ECollisionResponse::ECR_Block);
 		GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 		GetMesh()->SetSimulatePhysics(true);
 	}	
@@ -836,9 +529,9 @@ void ATPSCharacter::EnableRagdoll_Multicast_Implementation()
 float ATPSCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
 {
 	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
-	if (CharHealthComponent && CharHealthComponent->GetIsAlive())
+	if (bIsAlive)
 	{
-		CharHealthComponent->ChangeHealthValue_OnServer(-DamageAmount);
+		CharHealthComponent->ChangeHealthValue(-DamageAmount);
 	}
 			
 	if (DamageEvent.IsOfType(FRadialDamageEvent::ClassID))
@@ -846,33 +539,9 @@ float ATPSCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& D
 		AProjectileDefault* myProjectile = Cast<AProjectileDefault>(DamageCauser);
 		if (myProjectile)
 		{
-			UTypes::AddEffectBySurfaceType(this, NAME_None, myProjectile->ProjectileSetting.Effect, GetSurfuceType());// to do Name_None - bone for radial damage			
+			UTypes::AddEffectBySurfaceType(this, myProjectile->ProjectileSetting.Effect, GetSurfuceType());			
 		}
 	}
 
 	return ActualDamage;
-}
-
-bool ATPSCharacter::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)
-{
-	bool Wrote = Super::ReplicateSubobjects(Channel,Bunch,RepFlags);
-
-	for (int32 i = 0; i < Effects.Num(); i++)
-	{
-		if (Effects[i]) {Wrote |= Channel->ReplicateSubobject(Effects[i], *Bunch, *RepFlags);}
-	}
-	return Wrote;
-}
-
-
-void ATPSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(ATPSCharacter, MovementState);
-	DOREPLIFETIME(ATPSCharacter, CurrentWeapon);
-	DOREPLIFETIME(ATPSCharacter, CurrentIndexWeapon);
-	DOREPLIFETIME(ATPSCharacter, Effects);
-	DOREPLIFETIME(ATPSCharacter, EffectAdd);
-	DOREPLIFETIME(ATPSCharacter, EffectRemove);
 }
