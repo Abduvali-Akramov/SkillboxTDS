@@ -70,16 +70,23 @@ public:
 };
 
 UCLASS()
-class TPS_API UTPS_StateEffect_DisableInput: public UTPS_StateEffect
+class TPS_API UTPS_StateEffect_DisableInput: public UTPS_StateEffect_ExecuteTimer
 {
 	GENERATED_BODY()
 
 public:
+
+	FTimerHandle TimerHandle;
+	void OnTimerEnd();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float TimerRate;
 	
+	virtual void DestroyObject() override;
+	virtual void Execute() override;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 	UAnimMontage* LoopAnimation = nullptr;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-	ACharacter* Character;
-	void DisableCharacterInput();
-};
+	void ChangeCharacterInputStatus(bool bStatus);
+}; 

@@ -4,6 +4,7 @@
 
 #include "Character/TPSCharacter.h"
 #include "Character/TPSHealthComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Interface/TPS_IGameActor.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -82,8 +83,11 @@ bool UTPS_StateEffect_ExecuteTimer::InitObject(AActor* Actor)
 
 void UTPS_StateEffect_ExecuteTimer::DestroyObject()
 {
-	ParticleEmitter->DestroyComponent();
-	ParticleEmitter = nullptr;
+	if(ParticleEmitter)
+	{
+		ParticleEmitter->DestroyComponent();
+		ParticleEmitter = nullptr;
+	}
 	Super::DestroyObject();
 }
 
@@ -100,11 +104,54 @@ void UTPS_StateEffect_ExecuteTimer::Execute()
 	}
 }
 
-void UTPS_StateEffect_DisableInput::DisableCharacterInput()
+void UTPS_StateEffect_DisableInput::OnTimerEnd()
+{
+	ChangeCharacterInputStatus(true);
+}
+
+void UTPS_StateEffect_DisableInput::DestroyObject()
+{
+	Super::DestroyObject();
+
+	if(myActor)
+	{
+		ChangeCharacterInputStatus(true);
+
+		auto Character = Cast<ACharacter>(myActor);
+		if(Character)
+		{
+			Character->GetCharacterMovement()->MaxWalkSpeed = 450.0;
+		}
+	}
+}
+
+void UTPS_StateEffect_DisableInput::Execute()
+{
+	Super::Execute();
+
+	if(myActor)
+	{
+		ChangeCharacterInputStatus(false);
+	}
+}
+
+void UTPS_StateEffect_DisableInput::ChangeCharacterInputStatus(bool bStatus)
 {
 	if(LoopAnimation)
 	{
-		Character = UGameplayStatics::GetPlayerCharacter(GetWorld(),0);
-		Character->PlayAnimMontage(LoopAnimation);
+		auto Character = Cast<ACharacter>(myActor);
+
+		if(Character && !bStatus)
+		{
+			Character->PlayAnimMontage(LoopAnimation);
+			Character->GetCharacterMovement()->MaxWalkSpeed = 0.0;
+			Character->GetCharacterMovement()->StopMovementImmediately();
+			Character->DisableInput(Cast<APlayerController>(Character->GetController()));
+			myActor->GetWorldTimerManager().SetTimer(TimerHandle, this, &UTPS_StateEffect_DisableInput::OnTimerEnd, TimerRate, false);
+		}
+		else if(Character && bStatus)
+		{
+			Character->EnableInput(Cast<APlayerController>(Character->GetController()));
+		}
 	}
 }
