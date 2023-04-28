@@ -104,15 +104,8 @@ void UTPS_StateEffect_ExecuteTimer::Execute()
 	}
 }
 
-void UTPS_StateEffect_DisableInput::OnTimerEnd()
-{
-	ChangeCharacterInputStatus(true);
-}
-
 void UTPS_StateEffect_DisableInput::DestroyObject()
 {
-	Super::DestroyObject();
-
 	if(myActor)
 	{
 		ChangeCharacterInputStatus(true);
@@ -123,12 +116,12 @@ void UTPS_StateEffect_DisableInput::DestroyObject()
 			Character->GetCharacterMovement()->MaxWalkSpeed = 450.0;
 		}
 	}
+
+	Super::DestroyObject();
 }
 
 void UTPS_StateEffect_DisableInput::Execute()
 {
-	Super::Execute();
-
 	if(myActor)
 	{
 		ChangeCharacterInputStatus(false);
@@ -147,7 +140,6 @@ void UTPS_StateEffect_DisableInput::ChangeCharacterInputStatus(bool bStatus)
 			Character->GetCharacterMovement()->MaxWalkSpeed = 0.0;
 			Character->GetCharacterMovement()->StopMovementImmediately();
 			Character->DisableInput(Cast<APlayerController>(Character->GetController()));
-			myActor->GetWorldTimerManager().SetTimer(TimerHandle, this, &UTPS_StateEffect_DisableInput::OnTimerEnd, TimerRate, false);
 		}
 		else if(Character && bStatus)
 		{

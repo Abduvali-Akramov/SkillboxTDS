@@ -75,12 +75,6 @@ class TPS_API UTPS_StateEffect_DisableInput: public UTPS_StateEffect_ExecuteTime
 	GENERATED_BODY()
 
 public:
-
-	FTimerHandle TimerHandle;
-	void OnTimerEnd();
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float TimerRate;
 	
 	virtual void DestroyObject() override;
 	virtual void Execute() override;
