@@ -18,12 +18,13 @@ public:
 	// Sets default values for this component's properties
 	UTPSHealthComponent();
 
-	UPROPERTY(BlueprintAssignable, EditAnywhere, BlueprintReadWrite, Category = "Health")
+	UPROPERTY(BlueprintAssignable, Category = "Health")
 	FOnHealthChange OnHealthChange;
-	UPROPERTY(BlueprintAssignable, EditAnywhere, BlueprintReadWrite, Category = "Health")
+	UPROPERTY(BlueprintAssignable, Category = "Health")
 	FOnDead OnDead;
 
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
+	float CoefDamage = 1.0f;
 
 protected:
 	// Called when the game starts
@@ -33,8 +34,6 @@ protected:
 
 public:	
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
-	float CoefDamage = 1.0f;
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	UFUNCTION(BlueprintCallable, Category = "Health")
@@ -44,7 +43,4 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Health")
 	virtual void ChangeHealthValue(float ChangeValue);
-
-
-
 };

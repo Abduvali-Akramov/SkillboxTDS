@@ -16,6 +16,3 @@ public:
 
 	void PlayerCharacterDead();
 };
-
-
-

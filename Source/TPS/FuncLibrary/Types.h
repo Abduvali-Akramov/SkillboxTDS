@@ -4,6 +4,7 @@
 
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "Engine/DataTable.h"
+#include "StateEffects/TPS_StateEffect.h"
 #include "Types.generated.h"
 
 class UTPS_IGameActor;
@@ -51,33 +52,33 @@ struct FProjectileInfo
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ProjectileSetting")
-	TSubclassOf<class AProjectileDefault> Projectile = nullptr;
+		TSubclassOf<class AProjectileDefault> Projectile = nullptr;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ProjectileSetting")
-	UStaticMesh* ProjectileStaticMesh = nullptr;
+		UStaticMesh* ProjectileStaticMesh = nullptr;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ProjectileSetting")
-	FTransform ProjectileStaticMeshOffset = FTransform();
+		FTransform ProjectileStaticMeshOffset = FTransform();
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ProjectileSetting")
-	UParticleSystem* ProjectileTrailFx = nullptr;
+		UParticleSystem* ProjectileTrailFx = nullptr;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ProjectileSetting")
-	FTransform ProjectileTrailFxOffset = FTransform();
+		FTransform ProjectileTrailFxOffset = FTransform();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ProjectileSetting")
-	float ProjectileDamage = 20.0f;
+		float ProjectileDamage = 20.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ProjectileSetting")
-	float ProjectileLifeTime = 20.0f;
+		float ProjectileLifeTime = 20.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ProjectileSetting")
-	float ProjectileInitSpeed = 2000.0f;
+		float ProjectileInitSpeed = 2000.0f;
 
 	//material to decal on hit
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FX")
-	TMap<TEnumAsByte<EPhysicalSurface>, UMaterialInterface*> HitDecals;
+		TMap<TEnumAsByte<EPhysicalSurface>, UMaterialInterface*> HitDecals;
 	//Sound when hit
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FX")
-	USoundBase* HitSound = nullptr;
+		USoundBase* HitSound = nullptr;
 	//fx when hit check by surface
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FX")
-	TMap<TEnumAsByte<EPhysicalSurface>, UParticleSystem*> HitFXs;
+		TMap<TEnumAsByte<EPhysicalSurface>, UParticleSystem*> HitFXs;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effect")
 		TSubclassOf<UTPS_StateEffect> Effect = nullptr;
@@ -194,13 +195,13 @@ struct FWeaponInfo : public FTableRowBase
 	TSubclassOf<class AWeaponDefault> WeaponClass = nullptr;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State")
-	float RateOfFire = 0.5f;
+		float RateOfFire = 0.5f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State")
-	float ReloadTime = 2.0f;
+		float ReloadTime = 2.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State")
-	int32 MaxRound = 10;
+		int32 MaxRound = 10;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State")
-	int32 NumberProjectileByShot = 1;
+		int32 NumberProjectileByShot = 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dispersion ")
 		FWeaponDispersion DispersionWeapon;
@@ -213,10 +214,10 @@ struct FWeaponInfo : public FTableRowBase
 		UParticleSystem* EffectFireWeapon = nullptr;
 	//if null use trace logic (TSubclassOf<class AProjectileDefault> Projectile = nullptr), use projectile setting damage, FX and other for trace logic
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile ")
-	FProjectileInfo ProjectileSetting;
+		FProjectileInfo ProjectileSetting;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trace ")
 		float DistacneTrace = 2000.0f;
-	//one decal on all?
+	//one decal on all? ToDO array decal for any surface
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HitEffect ")
 		UDecalComponent* DecalOnHit = nullptr;
 
@@ -228,14 +229,14 @@ struct FWeaponInfo : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh ")
 		FDropMeshInfo ShellBullets;
 
-	//inv
+	//inventory
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory ")
 	float SwitchTimeToWeapon = 1.0f;
 		
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory ")
-	UTexture2D* WeaponIcon = nullptr;
+		UTexture2D* WeaponIcon = nullptr;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory ")
-	EWeaponType WeaponType = EWeaponType::RifleType;
+		EWeaponType WeaponType = EWeaponType::RifleType;
 };
 
 USTRUCT(BlueprintType)
@@ -298,6 +299,6 @@ class TPS_API UTypes : public UBlueprintFunctionLibrary
 public:
 
 	UFUNCTION(BlueprintCallable)
-	static void AddEffectBySurfaceType(AActor* TakeEffectActor, TSubclassOf<UTPS_StateEffect> AddEffectClass, EPhysicalSurface SurfaceType);
+	static void AddEffectBySurfaceType(AActor* TakeEffectActor,FName NameBoneHit, TSubclassOf<UTPS_StateEffect> AddEffectClass, EPhysicalSurface SurfaceType);
 };
 

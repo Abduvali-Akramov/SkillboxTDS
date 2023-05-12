@@ -33,9 +33,7 @@ void AProjectileDefault_Grenade::TimerExplose(float DeltaTime)
 	{
 		if (TimerToExplose > TimeToExplose)
 		{
-			//Explose
-			Explose();
-			
+			Explose();			
 		}
 		else
 		{
