@@ -5,34 +5,35 @@
     <projectFile>Intermediate/ProjectFiles/UE4.vcxproj</projectFile>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="504707fe-6edb-433f-b2e1-2a4f74676526" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.TPS/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Config/DefaultEngine.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/DefaultEngine.ini" afterDir="false" />
+    <list default="true" id="8d32b82b-e6d9-4f49-a842-b58e5dfd2453" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.TPS/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.TPS/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Blueprint/EnemyCharacter/AICombatInterface.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Blueprint/EnemyCharacter/AI_BB.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Blueprint/EnemyCharacter/BP_AIController.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Blueprint/EnemyCharacter/BP_AIController.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Blueprint/EnemyCharacter/BP_CharacterEnemy_Base.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Blueprint/EnemyCharacter/BP_CharacterEnemy_Base.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Blueprint/EnemyCharacter/BTD_CanMove.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Blueprint/EnemyCharacter/BTD_CheckMeleeAttackDistance.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Blueprint/EnemyCharacter/BTS_CanSeePawn.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Blueprint/EnemyCharacter/BTS_ChangeChaseState.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Blueprint/EnemyCharacter/BTS_SeTsPEEDpaWN.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Blueprint/EnemyCharacter/BTT_FindRandomPointNearTarget.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Blueprint/EnemyCharacter/BTT_FindRandomPointNearVector.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Blueprint/EnemyCharacter/BTT_HearingFinisdhTask.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Blueprint/EnemyCharacter/BTT_TryAttack.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Blueprint/EnemyCharacter/BT_AI.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Blueprint/EnemyCharacter/EChaseState.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Blueprint/Game/BP_GameMode.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Blueprint/Game/BP_GameMode.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Blueprint/Game/BP_GameState.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Blueprint/Game/BP_GameState.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Blueprint/InteractionEnvironment/PickUps/BP_PickUpActor_Ammo.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Blueprint/InteractionEnvironment/PickUps/BP_PickUpActor_Ammo.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Blueprint/InteractionEnvironment/PickUps/BP_PickUpActor_Weapon.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Blueprint/InteractionEnvironment/PickUps/BP_PickUpActor_Weapon.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Map/TopDownExampleMap1.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Map/TopDownExampleMap1.umap" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/StarterContent/Architecture/Floor_400x400.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/StarterContent/Architecture/Floor_400x400.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/TPS/Character/TPSCharacter.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/TPS/Character/TPSCharacter.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/TPS/Character/TPSCharacter.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/TPS/Character/TPSCharacter.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/TPS/Character/TPSCharacterHealthComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/TPS/Character/TPSCharacterHealthComponent.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/TPS/Character/TPSCharacterHealthComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/TPS/Character/TPSCharacterHealthComponent.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/TPS/Character/TPSHealthComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/TPS/Character/TPSHealthComponent.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/TPS/Character/TPSHealthComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/TPS/Character/TPSHealthComponent.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/TPS/Character/TPSInventoryComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/TPS/Character/TPSInventoryComponent.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/TPS/Character/TPSInventoryComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/TPS/Character/TPSInventoryComponent.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/TPS/FuncLibrary/Types.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/TPS/FuncLibrary/Types.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Table/DT_Levels.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Table/DT_Levels.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/TPS/FuncLibrary/Types.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/TPS/FuncLibrary/Types.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/TPS/Game/TPSGameMode.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/TPS/Game/TPSGameMode.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/TPS/Game/TPSGameMode.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/TPS/Game/TPSGameMode.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/TPS/Game/TPSPlayerController.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/TPS/Game/TPSPlayerController.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/TPS/Interface/TPS_IGameActor.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/TPS/Interface/TPS_IGameActor.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/TPS/Interface/TPS_IGameActor.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/TPS/Interface/TPS_IGameActor.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/TPS/StateEffects/TPS_StateEffect.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/TPS/StateEffects/TPS_StateEffect.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/TPS/StateEffects/TPS_StateEffect.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/TPS/StateEffects/TPS_StateEffect.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/TPS/Structure/TPS_EnvironmentStructure.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/TPS/Structure/TPS_EnvironmentStructure.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/TPS/Structure/WorldItemDefault.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/TPS/Structure/WorldItemDefault.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/TPS/TPS.Build.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Source/TPS/TPS.Build.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/TPS/Weapons/Projectiles/ProjectileDefault.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/TPS/Weapons/Projectiles/ProjectileDefault.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/TPS/Weapons/Projectiles/ProjectileDefault.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/TPS/Weapons/Projectiles/ProjectileDefault.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/TPS/Weapons/Projectiles/ProjectileDefault_Grenade.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/TPS/Weapons/Projectiles/ProjectileDefault_Grenade.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/TPS/Weapons/WeaponDefault.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/TPS/Weapons/WeaponDefault.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/TPS/Weapons/WeaponDefault.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/TPS/Weapons/WeaponDefault.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/TPS/Weapons/Projectiles/ProjectileDefault_Grenade.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/TPS/Weapons/Projectiles/ProjectileDefault_Grenade.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -42,7 +43,7 @@
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
-  <component name="ProjectId" id="2P45xuaa7gLrE5O5vbucW6f9RZu" />
+  <component name="ProjectId" id="2QBtDnWE0UYQSbKShMRNz3qXqyw" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -479,20 +480,13 @@
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="504707fe-6edb-433f-b2e1-2a4f74676526" name="Changes" comment="" />
-      <created>1682703764965</created>
+      <changelist id="8d32b82b-e6d9-4f49-a842-b58e5dfd2453" name="Changes" comment="" />
+      <created>1684838685382</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1682703764965</updated>
-      <workItem from="1682703766761" duration="1109000" />
-      <workItem from="1682791102833" duration="1635000" />
-      <workItem from="1683136303195" duration="3520000" />
-      <workItem from="1683443306921" duration="2559000" />
-      <workItem from="1683485233666" duration="940000" />
-      <workItem from="1683827580768" duration="2023000" />
-      <workItem from="1683879946919" duration="930000" />
-      <workItem from="1683885705379" duration="676000" />
-      <workItem from="1683899181559" duration="1772000" />
+      <updated>1684838685382</updated>
+      <workItem from="1684838687773" duration="1025000" />
+      <workItem from="1684866854387" duration="12000" />
     </task>
     <servers />
   </component>

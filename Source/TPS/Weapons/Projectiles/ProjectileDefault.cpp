@@ -6,7 +6,6 @@
 #include "Kismet/GameplayStatics.h"
 #include "Perception/AISense_Damage.h"
 
-
 // Sets default values
 AProjectileDefault::AProjectileDefault()
 {
@@ -62,7 +61,7 @@ void AProjectileDefault::Tick(float DeltaTime)
 void AProjectileDefault::InitProjectile(FProjectileInfo InitParam)
 {
 	BulletProjectileMovement->InitialSpeed = InitParam.ProjectileInitSpeed;
-	BulletProjectileMovement->MaxSpeed = InitParam.ProjectileInitSpeed;
+	BulletProjectileMovement->MaxSpeed = InitParam.ProjectileMaxSpeed;
 	this->SetLifeSpan(InitParam.ProjectileLifeTime);
 	if (InitParam.ProjectileStaticMesh)
 	{
@@ -117,9 +116,10 @@ void AProjectileDefault::BulletCollisionSphereHit(UPrimitiveComponent* HitComp, 
 		UTypes::AddEffectBySurfaceType(Hit.GetActor(), Hit.BoneName, ProjectileSetting.Effect, mySurfacetype);
 		
 	}
-	
+
 	UGameplayStatics::ApplyPointDamage(OtherActor, ProjectileSetting.ProjectileDamage, Hit.TraceStart, Hit, GetInstigatorController(), this, NULL);	
-	UAISense_Damage::ReportDamageEvent(GetWorld(), Hit.GetActor(), GetInstigator(),ProjectileSetting.ProjectileDamage,Hit.TraceStart,Hit.TraceEnd);//for ai sense damage
+	UAISense_Damage::ReportDamageEvent(GetWorld(),Hit.GetActor(), GetInstigator(), ProjectileSetting.ProjectileDamage, Hit.Location, Hit.Location);// todo shotgun trace, grenade
+
 	ImpactProjectile();		
 }
 
