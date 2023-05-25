@@ -5,7 +5,15 @@
     <projectFile>Intermediate/ProjectFiles/UE4.vcxproj</projectFile>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="8d32b82b-e6d9-4f49-a842-b58e5dfd2453" name="Changes" comment="" />
+    <list default="true" id="8d32b82b-e6d9-4f49-a842-b58e5dfd2453" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/Content/Blueprint/EnemyCharacter/BP_CharacterEnemy_Base.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Blueprint/EnemyCharacter/BP_CharacterEnemy_Base.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Blueprint/EnemyCharacter/Boss/BT_AI_Boss.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Blueprint/EnemyCharacter/Boss/BT_AI_Boss.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Blueprint/EnemyCharacter/Common/AICombatInterface.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Blueprint/EnemyCharacter/Common/BTT_TryAttack.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Blueprint/EnemyCharacter/Common/BTT_TryAttack.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Blueprint/EnemyCharacter/Common/BT_AI.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Blueprint/EnemyCharacter/Common/BT_AI.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Blueprint/Game/BP_GameMode.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Blueprint/Game/BP_GameMode.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Map/TopDownExampleMap1.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Map/TopDownExampleMap1.umap" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -459,6 +467,7 @@
       <workItem from="1684838687773" duration="1025000" />
       <workItem from="1684866854387" duration="12000" />
       <workItem from="1684870199390" duration="1046000" />
+      <workItem from="1685045172069" duration="33000" />
     </task>
     <servers />
   </component>
