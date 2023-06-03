@@ -101,14 +101,13 @@ void ATPSCharacter::SetupPlayerInputComponent(UInputComponent* NewInputComponent
 	NewInputComponent->BindAxis(TEXT("MoveForward"), this, &ATPSCharacter::InputAxisX);
 	NewInputComponent->BindAxis(TEXT("MoveRight"), this, &ATPSCharacter::InputAxisY);
 
-/*
 	NewInputComponent->BindAction(TEXT("ChangeToSprint"), EInputEvent::IE_Pressed, this, &ATPSCharacter::InputSprintPressed);
 	NewInputComponent->BindAction(TEXT("ChangeToWalk"), EInputEvent::IE_Pressed, this, &ATPSCharacter::InputWalkPressed);
 	NewInputComponent->BindAction(TEXT("AimEvent"), EInputEvent::IE_Pressed, this, &ATPSCharacter::InputAimPressed);
 	NewInputComponent->BindAction(TEXT("ChangeToSprint"), EInputEvent::IE_Released, this, &ATPSCharacter::InputSprintReleased);
 	NewInputComponent->BindAction(TEXT("ChangeToWalk"), EInputEvent::IE_Released, this, &ATPSCharacter::InputWalkReleased);
 	NewInputComponent->BindAction(TEXT("AimEvent"), EInputEvent::IE_Released, this, &ATPSCharacter::InputAimReleased);
-*/
+
 	NewInputComponent->BindAction(TEXT("FireEvent"), EInputEvent::IE_Pressed, this, &ATPSCharacter::InputAttackPressed);
 	NewInputComponent->BindAction(TEXT("FireEvent"), EInputEvent::IE_Released, this, &ATPSCharacter::InputAttackReleased);
 	NewInputComponent->BindAction(TEXT("ReloadEvent"), EInputEvent::IE_Released, this, &ATPSCharacter::TryReloadWeapon);
@@ -118,7 +117,7 @@ void ATPSCharacter::SetupPlayerInputComponent(UInputComponent* NewInputComponent
 
 	NewInputComponent->BindAction(TEXT("AblityAction"), EInputEvent::IE_Pressed, this, &ATPSCharacter::TryAbilityEnabled);
 	
-	//NewInputComponent->BindAction(TEXT("DropCurrentWeapon"), EInputEvent::IE_Pressed, this, &ATPSCharacter::DropCurrentWeapon);
+	NewInputComponent->BindAction(TEXT("DropCurrentWeapon"), EInputEvent::IE_Pressed, this, &ATPSCharacter::DropCurrentWeapon);
 
 	TArray<FKey> HotKeys;
 	HotKeys.Add(EKeys::One);

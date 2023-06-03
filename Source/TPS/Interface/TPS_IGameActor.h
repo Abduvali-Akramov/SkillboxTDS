@@ -23,7 +23,7 @@ class TPS_API ITPS_IGameActor
 	GENERATED_BODY()
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
-	public:
+public:
 
 	virtual EPhysicalSurface GetSurfuceType();
 	virtual TArray<UTPS_StateEffect*> GetAllCurrentEffects();

@@ -24,7 +24,7 @@ public:
 	FOnDead OnDead;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
-	float CoefDamage = 1.0f;
+		float CoefDamage = 1.0f;
 
 protected:
 	// Called when the game starts

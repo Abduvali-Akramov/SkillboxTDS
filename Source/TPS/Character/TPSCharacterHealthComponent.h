@@ -24,11 +24,11 @@ public:
 	FTimerHandle TimerHandle_ShieldRecoveryRateTimer;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shield")
-	float CoolDownShieldRecoverTime = 5.0f;
+		float CoolDownShieldRecoverTime = 5.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shield")
-	float ShieldRecoverValue = 1.0f;
+		float ShieldRecoverValue = 1.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shield")
-	float ShieldRecoverRate = 0.1f;
+		float ShieldRecoverRate = 0.1f;
 protected:
 
 	float Shield = 100.0f;

@@ -1,10 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "TPS_StateEffect.h"
 
-#include "Character/TPSCharacter.h"
+#include "TPS_StateEffect.h"
 #include "Character/TPSHealthComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "Interface/TPS_IGameActor.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -72,10 +70,22 @@ bool UTPS_StateEffect_ExecuteTimer::InitObject(AActor* Actor, FName NameBoneHit)
 	
 	if (ParticleEffect)
 	{
-		FName NameBoneToAttached;
+	//ToDo for object with interface create func return offset, Name Bones, 
+	//ToDo Random init Effect with available array (For)
+		FName NameBoneToAttached = NameBoneHit;
 		FVector Loc = FVector(0);
+
 		
-		ParticleEmitter = UGameplayStatics::SpawnEmitterAttached(ParticleEffect,myActor->GetRootComponent(), NameBoneToAttached, Loc, FRotator::ZeroRotator,EAttachLocation::SnapToTarget,false);
+		USceneComponent* myMesh = Cast<USceneComponent>(myActor->GetComponentByClass(USkeletalMeshComponent::StaticClass()));
+		if (myMesh)
+		{
+			ParticleEmitter = UGameplayStatics::SpawnEmitterAttached(ParticleEffect, myMesh, NameBoneToAttached, Loc, FRotator::ZeroRotator, EAttachLocation::SnapToTarget, false);
+		}
+		else
+		{
+			ParticleEmitter = UGameplayStatics::SpawnEmitterAttached(ParticleEffect, myActor->GetRootComponent(), NameBoneToAttached, Loc, FRotator::ZeroRotator, EAttachLocation::SnapToTarget, false);
+		}
+		
 	}
 	
 	return true;
@@ -83,11 +93,8 @@ bool UTPS_StateEffect_ExecuteTimer::InitObject(AActor* Actor, FName NameBoneHit)
 
 void UTPS_StateEffect_ExecuteTimer::DestroyObject()
 {
-	if(ParticleEmitter)
-	{
-		ParticleEmitter->DestroyComponent();
-		ParticleEmitter = nullptr;
-	}
+	ParticleEmitter->DestroyComponent();
+	ParticleEmitter = nullptr;
 	Super::DestroyObject();
 }
 
@@ -95,55 +102,10 @@ void UTPS_StateEffect_ExecuteTimer::Execute()
 {
 	if (myActor)
 	{	
-		//UGameplayStatics::ApplyDamage(myActor,Power,nullptr,nullptr,nullptr);	
 		UTPSHealthComponent* myHealthComp = Cast<UTPSHealthComponent>(myActor->GetComponentByClass(UTPSHealthComponent::StaticClass()));
 		if (myHealthComp)
 		{
 			myHealthComp->ChangeHealthValue(Power);
-		}
-	}
-}
-
-void UTPS_StateEffect_DisableInput::DestroyObject()
-{
-	if(myActor)
-	{
-		ChangeCharacterInputStatus(true);
-
-		auto Character = Cast<ACharacter>(myActor);
-		if(Character)
-		{
-			Character->GetCharacterMovement()->MaxWalkSpeed = 450.0;
-		}
-	}
-
-	Super::DestroyObject();
-}
-
-void UTPS_StateEffect_DisableInput::Execute()
-{
-	if(myActor)
-	{
-		ChangeCharacterInputStatus(false);
-	}
-}
-
-void UTPS_StateEffect_DisableInput::ChangeCharacterInputStatus(bool bStatus)
-{
-	if(LoopAnimation)
-	{
-		auto Character = Cast<ACharacter>(myActor);
-
-		if(Character && !bStatus)
-		{
-			Character->PlayAnimMontage(LoopAnimation);
-			Character->GetCharacterMovement()->MaxWalkSpeed = 0.0;
-			Character->GetCharacterMovement()->StopMovementImmediately();
-			Character->DisableInput(Cast<APlayerController>(Character->GetController()));
-		}
-		else if(Character && bStatus)
-		{
-			Character->EnableInput(Cast<APlayerController>(Character->GetController()));
 		}
 	}
 }

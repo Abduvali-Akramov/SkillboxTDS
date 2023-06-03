@@ -135,3 +135,5 @@ void AProjectileDefault::ImpactProjectile()
 {
 	this->Destroy();
 }
+
+

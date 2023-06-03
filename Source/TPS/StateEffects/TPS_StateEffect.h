@@ -8,8 +8,9 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "TPS_StateEffect.generated.h"
 
-class ATPSCharacter;
-
+/**
+ All implementation effects in one file, Fire Effect, blooding and...
+ */
 UCLASS(Blueprintable, BlueprintType)
 class TPS_API UTPS_StateEffect : public UObject
 {
@@ -68,19 +69,3 @@ public:
 
 	UParticleSystemComponent* ParticleEmitter = nullptr;
 };
-
-UCLASS()
-class TPS_API UTPS_StateEffect_DisableInput: public UTPS_StateEffect_ExecuteTimer
-{
-	GENERATED_BODY()
-
-public:
-	
-	virtual void DestroyObject() override;
-	virtual void Execute() override;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-	UAnimMontage* LoopAnimation = nullptr;
-
-	void ChangeCharacterInputStatus(bool bStatus);
-}; 
