@@ -22,9 +22,10 @@ void AProjectileDefault_Grenade::BeginPlay()
 void AProjectileDefault_Grenade::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	TimerExplose(DeltaTime);
-
-
+	if (HasAuthority())
+	{
+		TimerExplose(DeltaTime);
+	}	
 }
 
 void AProjectileDefault_Grenade::TimerExplose(float DeltaTime)
@@ -33,7 +34,7 @@ void AProjectileDefault_Grenade::TimerExplose(float DeltaTime)
 	{
 		if (TimerToExplose > TimeToExplose)
 		{
-			Explose();			
+			Explose_Onserver();			
 		}
 		else
 		{
@@ -46,7 +47,7 @@ void AProjectileDefault_Grenade::BulletCollisionSphereHit(class UPrimitiveCompon
 {
 	if (!TimerEnabled)
 	{
-		Explose();
+		Explose_Onserver();
 	}
 	Super::BulletCollisionSphereHit(HitComp, OtherActor, OtherComp, NormalImpulse, Hit);
 }
@@ -57,7 +58,7 @@ void AProjectileDefault_Grenade::ImpactProjectile()
 	TimerEnabled = true;
 }
 
-void AProjectileDefault_Grenade::Explose()
+void AProjectileDefault_Grenade::Explose_Onserver_Implementation()
 {
 	if (DebugExplodeShow)
 	{
@@ -68,11 +69,11 @@ void AProjectileDefault_Grenade::Explose()
 	TimerEnabled = false;
 	if (ProjectileSetting.ExplodeFX)
 	{
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ProjectileSetting.ExplodeFX, GetActorLocation(), GetActorRotation(), FVector(1.0f));
+		SpawnExplodeFX_Multicast(ProjectileSetting.ExplodeFX);
 	}
 	if (ProjectileSetting.ExplodeSound)
 	{
-		UGameplayStatics::PlaySoundAtLocation(GetWorld(), ProjectileSetting.ExplodeSound, GetActorLocation());
+		SpawnExplodeSound_Multicast(ProjectileSetting.ExplodeSound);		
 	}
 	
 
@@ -87,4 +88,14 @@ void AProjectileDefault_Grenade::Explose()
 		NULL, IgnoredActor,this,nullptr);
 
 	this->Destroy();
+}
+
+void AProjectileDefault_Grenade::SpawnExplodeFX_Multicast_Implementation(UParticleSystem* FxTemplate)
+{
+	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), FxTemplate, GetActorLocation(), GetActorRotation(), FVector(1.0f));
+}
+
+void AProjectileDefault_Grenade::SpawnExplodeSound_Multicast_Implementation(USoundBase* ExplodeSound)
+{
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), ExplodeSound, GetActorLocation());
 }

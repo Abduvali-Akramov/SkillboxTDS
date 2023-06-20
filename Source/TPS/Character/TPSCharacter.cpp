@@ -15,6 +15,10 @@
 #include "Engine/World.h"
 #include "Game/TPSGameInstance.h"
 #include "Weapons/Projectiles/ProjectileDefault.h"
+#include "TPS.h"
+#include "Net/UnrealNetwork.h"
+#include "Particles/ParticleSystemComponent.h"
+#include "Engine/ActorChannel.h"
 
 
 ATPSCharacter::ATPSCharacter()
@@ -60,6 +64,9 @@ ATPSCharacter::ATPSCharacter()
 	// Activate ticking in order to update the cursor every frame.
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = true;
+
+	//NetWork 
+	bReplicates = true;
 }
 
 void ATPSCharacter::Tick(float DeltaSeconds)
@@ -69,7 +76,7 @@ void ATPSCharacter::Tick(float DeltaSeconds)
 	if (CurrentCursor)
 	{
 		APlayerController* myPC = Cast<APlayerController>(GetController());
-		if (myPC)
+		if (myPC && myPC->IsLocalPlayerController())
 		{
 			FHitResult TraceHitResult;
 			myPC->GetHitResultUnderCursor(ECC_Visibility, true, TraceHitResult);
@@ -88,9 +95,12 @@ void ATPSCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (CursorMaterial)
+	if (GetWorld() && GetWorld()->GetNetMode() != NM_DedicatedServer)
 	{
-		CurrentCursor = UGameplayStatics::SpawnDecalAtLocation(GetWorld(), CursorMaterial, CursorSize, FVector(0));
+		if (CursorMaterial && GetLocalRole() == ROLE_AutonomousProxy || GetLocalRole() == ROLE_Authority)
+		{
+			CurrentCursor = UGameplayStatics::SpawnDecalAtLocation(GetWorld(), CursorMaterial, CursorSize, FVector(0));
+		}
 	}	
 }
 
@@ -155,7 +165,7 @@ void ATPSCharacter::InputAxisX(float Value)
 
 void ATPSCharacter::InputAttackPressed()
 {
-	if (bIsAlive)
+	if (CharHealthComponent && CharHealthComponent->GetIsAlive())
 	{
 		AttackCharEvent(true);
 	}	
@@ -204,61 +214,72 @@ void ATPSCharacter::InputAimReleased()
 
 void ATPSCharacter::MovementTick(float DeltaTime)
 {
-	if (bIsAlive)
+	if (CharHealthComponent && CharHealthComponent->GetIsAlive())
 	{
-		AddMovementInput(FVector(1.0f, 0.0f, 0.0f), AxisX);
-		AddMovementInput(FVector(0.0f, 1.0f, 0.0f), AxisY);
+		if (GetController() && GetController()->IsLocalPlayerController())
+		{
+			AddMovementInput(FVector(1.0f, 0.0f, 0.0f), AxisX);
+			AddMovementInput(FVector(0.0f, 1.0f, 0.0f), AxisY);
 
-		if (MovementState == EMovementState::SprintRun_State)
-		{
-			FVector myRotationVector = FVector(AxisX, AxisY, 0.0f);
-			FRotator myRotator = myRotationVector.ToOrientationRotator();
-			SetActorRotation((FQuat(myRotator)));
-		}
-		else
-		{
-			APlayerController* myController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-			if (myController)
+			if (MovementState == EMovementState::SprintRun_State)
 			{
-				FHitResult ResultHit;
-				//myController->GetHitResultUnderCursorByChannel(ETraceTypeQuery::TraceTypeQuery6, false, ResultHit);// bug was here Config\DefaultEngine.Ini
-				myController->GetHitResultUnderCursor(ECC_GameTraceChannel1, true, ResultHit);
+				FVector myRotationVector = FVector(AxisX, AxisY, 0.0f);
+				FRotator myRotator = myRotationVector.ToOrientationRotator();
 
-				float FindRotaterResultYaw = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), ResultHit.Location).Yaw;
-				SetActorRotation(FQuat(FRotator(0.0f, FindRotaterResultYaw, 0.0f)));
-
-				if (CurrentWeapon)
+				SetActorRotation((FQuat(myRotator)));
+				SetActorRotationByYaw_OnServer(myRotator.Yaw);
+			}
+			else
+			{
+				APlayerController* myController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+				if (myController)
 				{
-					FVector Displacement = FVector(0);
-					switch (MovementState)
-					{
-					case EMovementState::Aim_State:
-						Displacement = FVector(0.0f, 0.0f, 160.0f);
-						CurrentWeapon->ShouldReduceDispersion = true;
-						break;
-					case EMovementState::AimWalk_State:
-						CurrentWeapon->ShouldReduceDispersion = true;
-						Displacement = FVector(0.0f, 0.0f, 160.0f);
-						break;
-					case EMovementState::Walk_State:
-						Displacement = FVector(0.0f, 0.0f, 120.0f);
-						CurrentWeapon->ShouldReduceDispersion = false;
-						break;
-					case EMovementState::Run_State:
-						Displacement = FVector(0.0f, 0.0f, 120.0f);
-						CurrentWeapon->ShouldReduceDispersion = false;
-						break;
-					case EMovementState::SprintRun_State:
-						break;
-					default:
-						break;
-					}
+					FHitResult ResultHit;
+					//myController->GetHitResultUnderCursorByChannel(ETraceTypeQuery::TraceTypeQuery6, false, ResultHit);// bug was here Config\DefaultEngine.Ini
+					myController->GetHitResultUnderCursor(ECC_GameTraceChannel1, true, ResultHit);
 
-					CurrentWeapon->ShootEndLocation = ResultHit.Location + Displacement;
-					//aim cursor like 3d Widget?
+					float FindRotaterResultYaw = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), ResultHit.Location).Yaw;
+
+					SetActorRotation(FQuat(FRotator(0.0f, FindRotaterResultYaw, 0.0f)));
+					SetActorRotationByYaw_OnServer(FindRotaterResultYaw);
+
+					if (CurrentWeapon)
+					{
+						FVector Displacement = FVector(0);
+						bool bIsReduceDispersion = false;
+						switch (MovementState)
+						{
+						case EMovementState::Aim_State:
+							Displacement = FVector(0.0f, 0.0f, 160.0f);
+							//CurrentWeapon->ShouldReduceDispersion = true;
+							bIsReduceDispersion = true;
+							break;
+						case EMovementState::AimWalk_State:							
+							Displacement = FVector(0.0f, 0.0f, 160.0f);
+							//CurrentWeapon->ShouldReduceDispersion = true;
+							bIsReduceDispersion = true;
+							break;
+						case EMovementState::Walk_State:
+							Displacement = FVector(0.0f, 0.0f, 120.0f);
+							//CurrentWeapon->ShouldReduceDispersion = false;
+							break;
+						case EMovementState::Run_State:
+							Displacement = FVector(0.0f, 0.0f, 120.0f);
+							//CurrentWeapon->ShouldReduceDispersion = false;
+							break;
+						case EMovementState::SprintRun_State:
+							break;
+						default:
+							break;
+						}
+
+						//CurrentWeapon->ShootEndLocation = ResultHit.Location + Displacement;
+						CurrentWeapon->UpdateWeaponByCharacterMovementState_OnServer(ResultHit.Location + Displacement, bIsReduceDispersion);
+						//aim cursor like 3d Widget?
+					}
 				}
 			}
-		}
+		}		
 	}	
 }
 
@@ -279,7 +300,12 @@ int32 ATPSCharacter::GetCurrentWeaponIndex()
 
 bool ATPSCharacter::GetIsAlive()
 {
-	return bIsAlive;
+	bool result = false;
+	if (CharHealthComponent)
+	{
+		result = CharHealthComponent->GetIsAlive();
+	}
+	return result;
 }
 
 void ATPSCharacter::AttackCharEvent(bool bIsFiring)
@@ -288,7 +314,7 @@ void ATPSCharacter::AttackCharEvent(bool bIsFiring)
 	myWeapon = GetCurrentWeapon();
 	if (myWeapon)
 	{
-		myWeapon->SetWeaponStateFire(bIsFiring);
+		myWeapon->SetWeaponStateFire_OnServer(bIsFiring);
 	}
 	else
 		UE_LOG(LogTemp, Warning, TEXT("ATPSCharacter::AttackCharEvent - CurrentWeapon -NULL"));
@@ -323,9 +349,10 @@ void ATPSCharacter::CharacterUpdate()
 
 void ATPSCharacter::ChangeMovementState()
 {
+	EMovementState NewState = EMovementState::Run_State;
 	if (!WalkEnabled && !SprintRunEnabled && !AimEnabled)
 	{
-		MovementState = EMovementState::Run_State;
+		NewState = EMovementState::Run_State;
 	}
 	else
 	{
@@ -333,35 +360,44 @@ void ATPSCharacter::ChangeMovementState()
 		{
 			WalkEnabled = false;
 			AimEnabled = false;
-			MovementState = EMovementState::SprintRun_State;
-		}
-		if (WalkEnabled && !SprintRunEnabled && AimEnabled)
-		{
-			MovementState = EMovementState::AimWalk_State;
+			NewState = EMovementState::SprintRun_State;
 		}
 		else
 		{
-			if (WalkEnabled && !SprintRunEnabled && !AimEnabled)
+			if (WalkEnabled && !SprintRunEnabled && AimEnabled)
 			{
-				MovementState = EMovementState::Walk_State;
+				NewState = EMovementState::AimWalk_State;
 			}
 			else
 			{
-				if (!WalkEnabled && !SprintRunEnabled && AimEnabled)
+				if (WalkEnabled && !SprintRunEnabled && !AimEnabled)
 				{
-					MovementState = EMovementState::Aim_State;
+					NewState = EMovementState::Walk_State;
+				}
+				else
+				{
+					if (!WalkEnabled && !SprintRunEnabled && AimEnabled)
+					{
+						NewState = EMovementState::Aim_State;
+					}
 				}
 			}
-		}
+		}		
 	}	
-	CharacterUpdate();
+
+	SetMovementState_OnServer(NewState);
+	
+	//CharacterUpdate();
 
 	//Weapon state update
 	AWeaponDefault* myWeapon = GetCurrentWeapon();
 	if (myWeapon)
 	{
-		myWeapon->UpdateStateWeapon(MovementState);
+		myWeapon->UpdateStateWeapon_OnServer(NewState);
 	}
+
+	//FString SEnum = UEnum::GetValueAsString(NewState);
+	//UE_LOG(LogTPS_Net, Warning, TEXT("Movement state on SERVER - %s"), *SEnum);
 }
 
 AWeaponDefault* ATPSCharacter::GetCurrentWeapon()
@@ -371,6 +407,7 @@ AWeaponDefault* ATPSCharacter::GetCurrentWeapon()
 
 void ATPSCharacter::InitWeapon(FName IdWeaponName, FAdditionalWeaponInfo WeaponAdditionalInfo, int32 NewCurrentIndexWeapon)
 {
+	//Go on server
 	if (CurrentWeapon)
 	{
 		CurrentWeapon->Destroy();
@@ -405,7 +442,7 @@ void ATPSCharacter::InitWeapon(FName IdWeaponName, FAdditionalWeaponInfo WeaponA
 
 					
 					myWeapon->ReloadTime = myWeaponInfo.ReloadTime;
-					myWeapon->UpdateStateWeapon(MovementState);
+					myWeapon->UpdateStateWeapon_OnServer(MovementState);
 
 					myWeapon->AdditionalWeaponInfo = WeaponAdditionalInfo;
 
@@ -436,10 +473,9 @@ void ATPSCharacter::InitWeapon(FName IdWeaponName, FAdditionalWeaponInfo WeaponA
 
 void ATPSCharacter::TryReloadWeapon()
 {
-	if (bIsAlive && CurrentWeapon && !CurrentWeapon->WeaponReloading)
-	{
-		if (CurrentWeapon->GetWeaponRound() < CurrentWeapon->WeaponSetting.MaxRound && CurrentWeapon->CheckCanWeaponReload())
-			CurrentWeapon->InitReload();
+	if (CharHealthComponent && CharHealthComponent->GetIsAlive() && CurrentWeapon && !CurrentWeapon->WeaponReloading)
+	{	
+		TryReloadWeapon_OnServer();			
 	}
 }
 
@@ -458,7 +494,7 @@ void ATPSCharacter::WeaponReloadEnd(bool bIsSuccess, int32 AmmoTake)
 	WeaponReloadEnd_BP(bIsSuccess);
 }
 
-bool ATPSCharacter::TrySwitchWeaponToIndexByKeyInput(int32 ToIndex)
+void ATPSCharacter::TrySwitchWeaponToIndexByKeyInput_OnServer_Implementation(int32 ToIndex)
 {
 	bool bIsSuccess = false;
 	if (CurrentWeapon && !CurrentWeapon->WeaponReloading && InventoryComponent->WeaponSlots.IsValidIndex(ToIndex))
@@ -477,16 +513,14 @@ bool ATPSCharacter::TrySwitchWeaponToIndexByKeyInput(int32 ToIndex)
 
 			bIsSuccess = InventoryComponent->SwitchWeaponByIndex(ToIndex, OldIndex, OldInfo);
 		}
-	}	
-	return bIsSuccess;
+	}		
 }
 
 void ATPSCharacter::DropCurrentWeapon()
 {	
 	if (InventoryComponent)
-	{
-		FDropItem ItemInfo;
-		InventoryComponent->DropWeapobByIndex(CurrentIndexWeapon, ItemInfo);
+	{		
+		InventoryComponent->DropWeapobByIndex_OnServer(CurrentIndexWeapon);
 	}	
 }
 
@@ -601,14 +635,33 @@ TArray<UTPS_StateEffect*> ATPSCharacter::GetAllCurrentEffects()
 	return Effects;
 }
 
-void ATPSCharacter::RemoveEffect(UTPS_StateEffect* RemoveEffect)
+void ATPSCharacter::RemoveEffect_Implementation(UTPS_StateEffect* RemoveEffect)
 {
 	Effects.Remove(RemoveEffect);
+
+	if (!RemoveEffect->bIsAutoDestroyParticleEffect)
+	{
+		SwitchEffect(RemoveEffect, false);
+		EffectRemove = RemoveEffect;
+	}
 }
 
-void ATPSCharacter::AddEffect(UTPS_StateEffect* newEffect)
+void ATPSCharacter::AddEffect_Implementation(UTPS_StateEffect* newEffect)
 {
 	Effects.Add(newEffect);
+
+	if (!newEffect->bIsAutoDestroyParticleEffect)
+	{
+		SwitchEffect(newEffect, true);
+		EffectAdd = newEffect;
+	}
+	else
+	{
+		if (newEffect->ParticleEffect)
+		{
+			ExecuteEffectAdded_OnServer(newEffect->ParticleEffect);
+		}
+	}
 }
 
 void ATPSCharacter::CharDead_BP_Implementation()
@@ -616,38 +669,160 @@ void ATPSCharacter::CharDead_BP_Implementation()
 	//BP
 }
 
-void ATPSCharacter::CharDead()
+void ATPSCharacter::SetActorRotationByYaw_OnServer_Implementation(float Yaw)
 {
-	float TimeAnim = 0.0f;
-	int32 rnd = FMath::RandHelper(DeadsAnim.Num());
-	if (DeadsAnim.IsValidIndex(rnd) && DeadsAnim[rnd] && GetMesh() && GetMesh()->GetAnimInstance())
-	{
-		TimeAnim = DeadsAnim[rnd]->GetPlayLength();
-		GetMesh()->GetAnimInstance()->Montage_Play(DeadsAnim[rnd]);
-	}
-
-	bIsAlive = false;
-
-	if (GetController())
-	{
-		GetController()->UnPossess();
-	}
-
-	UnPossessed();
-
-	GetWorldTimerManager().SetTimer(TimerHandle_RagDollTimer, this, &ATPSCharacter::EnableRagdoll, TimeAnim, false);
-
-	GetCursorToWorld()->SetVisibility(false);
-
-	AttackCharEvent(false);	
-
-	CharDead_BP();
+	SetActorRotationByYaw_Multicast(Yaw);
 }
 
-void ATPSCharacter::EnableRagdoll()
+void ATPSCharacter::SetActorRotationByYaw_Multicast_Implementation(float Yaw)
+{
+	if (Controller && !Controller->IsLocalPlayerController())
+	{
+		SetActorRotation(FQuat(FRotator(0.0f,Yaw,0.0f)));
+	}
+}
+
+void ATPSCharacter::SetMovementState_OnServer_Implementation(EMovementState NewState)
+{
+	SetMovementState_Multicast(NewState);
+}
+
+void ATPSCharacter::SetMovementState_Multicast_Implementation(EMovementState NewState)
+{
+	MovementState = NewState;
+	CharacterUpdate();
+}
+
+void ATPSCharacter::TryReloadWeapon_OnServer_Implementation()
+{
+	if (CurrentWeapon->GetWeaponRound() < CurrentWeapon->WeaponSetting.MaxRound && CurrentWeapon->CheckCanWeaponReload())
+		CurrentWeapon->InitReload();
+}
+
+void ATPSCharacter::PlayAnim_Multicast_Implementation(UAnimMontage* Anim)
+{
+	if (GetMesh() && GetMesh()->GetAnimInstance())
+	{
+		GetMesh()->GetAnimInstance()->Montage_Play(Anim);
+	}
+}
+
+void ATPSCharacter::EffectAdd_OnRep()
+{
+	if (EffectAdd)
+	{
+		SwitchEffect(EffectAdd, true);
+	}	
+}
+
+void ATPSCharacter::EffectRemove_OnRep()
+{
+	if (EffectRemove)
+	{
+		SwitchEffect(EffectRemove, false);
+	}
+}
+
+void ATPSCharacter::ExecuteEffectAdded_OnServer_Implementation(UParticleSystem* ExecuteFX)
+{
+	ExecuteEffectAdded_Multicast(ExecuteFX);
+}
+
+void ATPSCharacter::ExecuteEffectAdded_Multicast_Implementation(UParticleSystem* ExecuteFX)
+{
+	UTypes::ExecuteEffectAdded(ExecuteFX, this, FVector(0), FName("Spine_01"));
+}
+
+void ATPSCharacter::SwitchEffect(UTPS_StateEffect* Effect, bool bIsAdd)
+{
+	if (bIsAdd)
+	{
+		if (Effect && Effect->ParticleEffect)
+		{
+			FName NameBoneToAttached = Effect->NameBone;
+			FVector Loc = FVector(0);
+
+			USkeletalMeshComponent* myMesh = GetMesh();
+			if (myMesh)
+			{
+				UParticleSystemComponent* newParticleSystem = UGameplayStatics::SpawnEmitterAttached(Effect->ParticleEffect, myMesh, NameBoneToAttached, Loc, FRotator::ZeroRotator, EAttachLocation::SnapToTarget, false);
+				ParticleSystemEffects.Add(newParticleSystem);											
+			}
+		}
+	}
+	else
+	{		
+		if (Effect && Effect->ParticleEffect)
+		{
+			int32 i = 0;
+			bool bIsFind = false;
+			if (ParticleSystemEffects.Num() > 0)
+			{
+				while (i < ParticleSystemEffects.Num() && !bIsFind)
+				{
+					if (ParticleSystemEffects[i] && ParticleSystemEffects[i]->Template && Effect->ParticleEffect && Effect->ParticleEffect == ParticleSystemEffects[i]->Template)
+					{
+						bIsFind = true;
+						ParticleSystemEffects[i]->DeactivateSystem();
+						ParticleSystemEffects[i]->DestroyComponent();
+						ParticleSystemEffects.RemoveAt(i);
+					}
+					i++;
+				}
+			}			
+		}
+	}
+}
+
+void ATPSCharacter::CharDead()
+{
+	CharDead_BP();
+	if (HasAuthority())
+	{
+		float TimeAnim = 0.0f;
+		int32 rnd = FMath::RandHelper(DeadsAnim.Num());
+		if (DeadsAnim.IsValidIndex(rnd) && DeadsAnim[rnd] && GetMesh() && GetMesh()->GetAnimInstance())
+		{
+			TimeAnim = DeadsAnim[rnd]->GetPlayLength();
+			//GetMesh()->GetAnimInstance()->Montage_Play(DeadsAnim[rnd]);
+			PlayAnim_Multicast(DeadsAnim[rnd]);
+		}
+
+		if (GetController())
+		{
+			GetController()->UnPossess();
+		}
+
+		GetWorldTimerManager().SetTimer(TimerHandle_RagDollTimer, this, &ATPSCharacter::EnableRagdoll_Multicast, TimeAnim, false);
+
+		SetLifeSpan(20.0f);
+		if (GetCurrentWeapon())
+		{
+			GetCurrentWeapon()->SetLifeSpan(20.0f);
+		}
+	}
+	else
+	{
+		if (GetCursorToWorld())
+		{
+			GetCursorToWorld()->SetVisibility(false);
+		}
+
+		AttackCharEvent(false);
+	}
+
+	if (GetCapsuleComponent())
+	{
+		GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+	}
+}
+
+void ATPSCharacter::EnableRagdoll_Multicast_Implementation()
 {
 	if (GetMesh())
 	{
+		GetMesh()->SetCollisionObjectType(ECC_PhysicsBody);
+		GetMesh()->SetCollisionResponseToChannel(ECC_Pawn, ECollisionResponse::ECR_Block);
 		GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 		GetMesh()->SetSimulatePhysics(true);
 	}	
@@ -656,9 +831,9 @@ void ATPSCharacter::EnableRagdoll()
 float ATPSCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
 {
 	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
-	if (bIsAlive)
+	if (CharHealthComponent && CharHealthComponent->GetIsAlive())
 	{
-		CharHealthComponent->ChangeHealthValue(-DamageAmount);
+		CharHealthComponent->ChangeHealthValue_OnServer(-DamageAmount);
 	}
 			
 	if (DamageEvent.IsOfType(FRadialDamageEvent::ClassID))
@@ -671,4 +846,28 @@ float ATPSCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& D
 	}
 
 	return ActualDamage;
+}
+
+bool ATPSCharacter::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)
+{
+	bool Wrote = Super::ReplicateSubobjects(Channel,Bunch,RepFlags);
+
+	for (int32 i = 0; i < Effects.Num(); i++)
+	{
+		if (Effects[i]) {Wrote |= Channel->ReplicateSubobject(Effects[i], *Bunch, *RepFlags);}
+	}
+	return Wrote;
+}
+
+
+void ATPSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ATPSCharacter, MovementState);
+	DOREPLIFETIME(ATPSCharacter, CurrentWeapon);
+	DOREPLIFETIME(ATPSCharacter, CurrentIndexWeapon);
+	DOREPLIFETIME(ATPSCharacter, Effects);
+	DOREPLIFETIME(ATPSCharacter, EffectAdd);
+	DOREPLIFETIME(ATPSCharacter, EffectRemove);
 }

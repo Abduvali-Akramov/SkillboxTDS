@@ -30,7 +30,10 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
+	UPROPERTY(Replicated)
 	float Health = 100.0f;
+	UPROPERTY(Replicated)
+	bool bIsAlive = true;
 
 public:	
 
@@ -40,7 +43,14 @@ public:
 	float GetCurrentHealth();
 	UFUNCTION(BlueprintCallable, Category = "Health")
 	void SetCurrentHealth(float NewHealth);
-
 	UFUNCTION(BlueprintCallable, Category = "Health")
-	virtual void ChangeHealthValue(float ChangeValue);
+	bool GetIsAlive();
+
+	UFUNCTION(Server, Reliable, BlueprintCallable, Category = "Health")
+	virtual void ChangeHealthValue_OnServer(float ChangeValue);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void HealthChangeEvent_Multicast(float newHealth, float value);
+	UFUNCTION(NetMulticast, Reliable)
+	void DeadEvent_Multicast();
 };

@@ -50,4 +50,23 @@ public:
 
 	UFUNCTION()
 	virtual void ImpactProjectile();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void InitVisualMeshProjectile_Multicast(UStaticMesh* newMesh, FTransform MeshRelative);
+	UFUNCTION(NetMulticast, Reliable)
+	void InitVisualTrailProjectile_Multicast(UParticleSystem* NewTemplate, FTransform TemlateRelative);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void SpawnHitDecal_Multicast(UMaterialInterface* DecalMaterial, UPrimitiveComponent* OtherComp, FHitResult HitResult);
+	UFUNCTION(NetMulticast, Reliable)
+	void SpawnHitFX_Multicast(UParticleSystem* FxTemplate, FHitResult HitResult);
+	UFUNCTION(NetMulticast, Reliable)
+	void SpawnHitSound_Multicast(USoundBase* HitSound, FHitResult HitResult);
+
+	UFUNCTION(NetMulticast, Reliable)
+		void InitVelocity_Multicast(float InitSpeed, float MaxSpeed);
+
+	virtual void PostNetReceiveVelocity(const FVector& NewVelocity)override;
+
+
 };

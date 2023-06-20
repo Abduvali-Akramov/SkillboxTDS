@@ -27,8 +27,10 @@ public:
 
 	virtual EPhysicalSurface GetSurfuceType();
 	virtual TArray<UTPS_StateEffect*> GetAllCurrentEffects();
-	virtual void RemoveEffect(UTPS_StateEffect* RemoveEffect);
-	virtual void AddEffect(UTPS_StateEffect* newEffect);
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void RemoveEffect(UTPS_StateEffect* RemoveEffect);
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void AddEffect(UTPS_StateEffect* newEffect);
 
 	//inv
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)

@@ -17,7 +17,8 @@ class ATPSCharacter : public ACharacter, public ITPS_IGameActor
 {
 	GENERATED_BODY()
 protected:
-	virtual void BeginPlay() override;
+	bool ReplicateSubobjects(class UActorChannel* Channel, class FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
+	void BeginPlay() override;
 
 	//Inputs
 	void InputAxisY(float Value);
@@ -44,7 +45,7 @@ protected:
 	template<int32 Id>
 	void TKeyPressed()
 	{
-		TrySwitchWeaponToIndexByKeyInput(Id);
+		TrySwitchWeaponToIndexByKeyInput_OnServer(Id);
 	}
 	//Inputs End
 
@@ -56,21 +57,30 @@ protected:
 	bool WalkEnabled = false;
 	bool AimEnabled = false;
 
-	bool bIsAlive = true;
-
+	UPROPERTY(Replicated)
 	EMovementState MovementState = EMovementState::Run_State;
-	
+	UPROPERTY(Replicated)
 	AWeaponDefault* CurrentWeapon = nullptr;
 
 	UDecalComponent* CurrentCursor = nullptr;
 
+	UPROPERTY(Replicated)
 	TArray<UTPS_StateEffect*> Effects;
+	UPROPERTY(ReplicatedUsing = EffectAdd_OnRep)
+	UTPS_StateEffect* EffectAdd = nullptr;
+	UPROPERTY(ReplicatedUsing = EffectRemove_OnRep)
+	UTPS_StateEffect* EffectRemove = nullptr;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
+	TArray<UParticleSystemComponent*> ParticleSystemEffects;
+
+	UPROPERTY(Replicated)
 	int32 CurrentIndexWeapon = 0;
 
 	UFUNCTION()
 	void CharDead();
-	void EnableRagdoll();
+	UFUNCTION(NetMulticast, Reliable)
+	void EnableRagdoll_Multicast();
 
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
@@ -143,7 +153,8 @@ public:
 	UFUNCTION()
 	void WeaponReloadEnd(bool bIsSuccess, int32 AmmoSafe);
 	//
-	bool TrySwitchWeaponToIndexByKeyInput(int32 ToIndex);
+	UFUNCTION(Server, Reliable)
+	void TrySwitchWeaponToIndexByKeyInput_OnServer(int32 ToIndex);
 	void DropCurrentWeapon();
 	UFUNCTION(BlueprintNativeEvent)
 		void WeaponReloadStart_BP(UAnimMontage* Anim);
@@ -170,13 +181,45 @@ public:
 	//Interface
 	EPhysicalSurface GetSurfuceType() override;
 	TArray<UTPS_StateEffect*> GetAllCurrentEffects() override;
-	void RemoveEffect(UTPS_StateEffect* RemoveEffect)override;
-	void AddEffect(UTPS_StateEffect* newEffect)override;
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+		void RemoveEffect(UTPS_StateEffect* RemoveEffect);
+	void RemoveEffect_Implementation(UTPS_StateEffect* RemoveEffect)override;
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+		void AddEffect(UTPS_StateEffect* newEffect);
+	void AddEffect_Implementation(UTPS_StateEffect* newEffect)override;
 	//End Interface
 
 	UFUNCTION(BlueprintNativeEvent)
 	void CharDead_BP();
 
+	UFUNCTION(Server, Unreliable)
+	void SetActorRotationByYaw_OnServer(float Yaw);
+	UFUNCTION(NetMulticast, Unreliable)
+	void SetActorRotationByYaw_Multicast(float Yaw);
+
+	UFUNCTION(Server, Reliable)
+		void SetMovementState_OnServer(EMovementState NewState);
+	UFUNCTION(NetMulticast, Reliable)
+		void SetMovementState_Multicast(EMovementState NewState);
+
+	UFUNCTION(Server, Reliable)
+		void TryReloadWeapon_OnServer();
+
+	UFUNCTION(NetMulticast, Reliable)
+		void PlayAnim_Multicast(UAnimMontage* Anim);
+
+	UFUNCTION()
+		void EffectAdd_OnRep();
+	UFUNCTION()
+		void EffectRemove_OnRep();
+
+	UFUNCTION(Server, Reliable)
+		void ExecuteEffectAdded_OnServer(UParticleSystem* ExecuteFX);
+
+	UFUNCTION(NetMulticast, Reliable)
+		void ExecuteEffectAdded_Multicast(UParticleSystem* ExecuteFX);
 	
+	UFUNCTION()
+	void SwitchEffect(UTPS_StateEffect* Effect, bool bIsAdd);
 };
 

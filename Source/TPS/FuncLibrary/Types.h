@@ -302,5 +302,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	static void AddEffectBySurfaceType(AActor* TakeEffectActor,FName NameBoneHit, TSubclassOf<UTPS_StateEffect> AddEffectClass, EPhysicalSurface SurfaceType);
+
+	UFUNCTION(BlueprintCallable)
+	static void ExecuteEffectAdded(UParticleSystem* ExecuteFX, AActor* target, FVector offset, FName Socket);
 };
 
